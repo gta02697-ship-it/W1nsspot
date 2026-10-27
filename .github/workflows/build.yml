@@ -42,6 +42,8 @@ jobs:
         mkdir -p artifacts
         cp .pio/build/m5stick/firmware.bin artifacts/m5stick_fw.bin
         cp .pio/build/devkit/firmware.bin artifacts/devkit_fw.bin
+        cp .pio/build/devkit/bootloader.bin artifacts/devkit_boot.bin
+        cp .pio/build/devkit/partitions.bin artifacts/devkit_part.bin
         cp .pio/build/devkit/littlefs.bin artifacts/devkit_fs.bin
 
     - name: Upload Artifacts
