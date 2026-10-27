@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CONTROL PANEL // MACRODROID</title>
+<style>
+:root{
+  --bg:#080b0a;--panel:#101614;--line:#254436;--green:#75ffad;--muted:#8da99a;
+  --red:#ff6666;--amber:#ffd166;--accent:#75ffad;--accent-glow:#75ffad66;
+  --icon-shadow: rgba(0,0,0,.7);
+}
+body.lan{
+  --bg:#0a0f14;--panel:#0d1a20;--line:#1e4a5c;--green:#66e0ff;--muted:#7fa8b8;
+  --accent:#66e0ff;--accent-glow:#66e0ff66;
+}
+*{box-sizing:border-box}
+
+/* ── Плавная смена темы ── */
+body, header, .status, .card, button, input, .lan-bar, h1, .sub, .name, .rating,
+.status-main, .status-sub, .note, .num {
+  transition: background-color .6s ease, color .6s ease,
+              border-color .6s ease, box-shadow .6s ease,
+              filter .6s ease, opacity .6s ease;
+}
+
+body{
+  margin:0;background:radial-gradient(ellipse at top,#12231a 0,#080b0a 55%);
+  color:#d9ffe7;font:13px/1.35 ui-monospace,SFMono-Regular,Consolas,monospace;padding:14px;
+}
+body.lan{background:radial-gradient(ellipse at top,#0d2230 0,#080b0a 55%);color:#d9f4ff}
+main{max-width:1100px;margin:auto}
+header{
+  display:flex;justify-content:space-between;align-items:center;gap:12px;
+  border:1px solid var(--line);background:#0c120f;padding:12px 15px;margin-bottom:12px;
+}
+body.lan header{background:#0a141a}
+h1{font-size:clamp(16px,2vw,23px);letter-spacing:2px;margin:0;color:var(--accent)}
+.sub{color:var(--muted);font-size:11px;margin-top:4px}
+
+/* ── Статус-панель ── */
+.status{
+  display:flex;align-items:center;gap:12px;color:var(--accent);white-space:nowrap;font-size:12px;
+  border:1px solid var(--line);background:linear-gradient(135deg,#0d1711,#0a100c);
+  padding:12px 15px;min-width:228px;min-height:68px;
+  box-shadow:inset 0 0 18px #75ffad08;
+}
+body.lan .status{background:linear-gradient(135deg,#0a1a22,#08131a)}
+
+/* ── 3D-контейнер иконки ── */
+.icon-3d-wrap{
+  width:56px;height:56px;flex:0 0 56px;display:grid;place-items:center;
+  perspective:220px;position:relative;transform-style:preserve-3d;
+}
+.icon-3d-wrap:before{
+  content:"";position:absolute;inset:2px;border:1px solid var(--accent);opacity:.28;
+  border-top-color:var(--accent);border-right-color:transparent;border-radius:50%;
+  box-shadow:0 0 10px var(--accent-glow),inset 0 0 8px var(--accent-glow);
+  animation:orbit 6s linear infinite;
+}
+.icon-3d-wrap:after{
+  content:"";position:absolute;inset:-4px;border-radius:50%;
+  background:radial-gradient(circle,var(--accent-glow) 0%,transparent 70%);
+  pointer-events:none;transition:background .6s;
+}
+.icon-3d{
+  width:42px;height:42px;position:relative;z-index:1;
+  transform-style:preserve-3d;backface-visibility:visible;
+  animation:spin3d 4.2s linear infinite, pulseGlow 2.2s ease-in-out infinite;
+  filter:drop-shadow(1px 2px 0 rgba(0,0,0,.8)) drop-shadow(0 0 7px var(--accent-glow));
+  transition: filter .6s ease;
+}
+.icon-3d svg{width:100%;height:100%;display:block}
+
+/* Агрессивное ускорение в BUSY */
+.status.busy .icon-3d{animation:spin3d 1s linear infinite, pulseGlow .8s ease-in-out infinite}
+.status.busy .icon-3d-wrap:before{animation-duration:1.2s;border-top-color:#fff}
+.status.busy .status-main{color:#fff}
+.status.busy .status-sub{color:var(--accent)}
+
+@keyframes spin3d{
+  0%{transform:rotateY(0deg) rotateX(9deg) scaleX(1);}
+  25%{transform:rotateY(90deg) rotateX(3deg) scaleX(.72);}
+  50%{transform:rotateY(180deg) rotateX(-3deg) scaleX(1);}
+  75%{transform:rotateY(270deg) rotateX(3deg) scaleX(.72);}
+  100%{transform:rotateY(360deg) rotateX(9deg) scaleX(1);}
+}
+@keyframes pulseGlow{
+  0%,100%{filter:drop-shadow(0 0 4px var(--accent-glow))}
+  50%{filter:drop-shadow(0 0 12px var(--accent))}
+}
+@keyframes orbit{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){
+  .icon-3d,.icon-3d-wrap:before{animation:none}
+}
+
+.status-copy{display:flex;flex-direction:column;gap:4px;min-width:0}
+.status-main{font-weight:800;letter-spacing:1px}
+.status-sub{font-size:9px;color:var(--muted);letter-spacing:.7px}
+.status .dot{
+  display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--accent);
+  box-shadow:0 0 8px var(--accent);animation:dotPulse 1.5s ease-in-out infinite;
+}
+@keyframes dotPulse{0%,100%{opacity:.45}50%{opacity:1}}
+
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+button,input{font:inherit}
+button{cursor:pointer;border:1px solid var(--line);background:#122019;color:var(--accent);padding:9px 11px}
+button:hover{border-color:var(--accent);background:#1a3023}
+button:disabled{opacity:.55;cursor:wait}
+body.lan button{background:#0e1c22}
+body.lan button:hover{border-color:var(--accent);background:#132a33}
+
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+.card{
+  border:1px solid var(--line);background:linear-gradient(145deg,#111a15,#0b100d);
+  padding:11px;min-width:0;
+}
+body.lan .card{background:linear-gradient(145deg,#0c1a20,#081116)}
+.top{display:flex;justify-content:space-between;gap:8px;align-items:flex-start;margin-bottom:9px}
+.name{font-weight:700;color:#e2ffeb;font-size:13px}
+body.lan .name{color:#e0f7ff}
+.num{color:var(--muted);font-size:10px}
+.rating{color:var(--amber);font-weight:700;white-space:nowrap}
+body.lan .rating{color:#66e0ff}
+input[type=url],input[type=text]{
+  width:100%;min-width:0;background:#070b08;color:#b8ffce;border:1px solid #294534;
+  padding:8px;margin-bottom:8px;outline:none;
+}
+body.lan input[type=url],body.lan input[type=text]{background:#061114;color:#b8f0ff;border-color:#1e4a5c}
+input:focus{border-color:var(--accent)}
+.actions{display:grid;grid-template-columns:minmax(0,1fr) 68px;gap:7px}
+.execute{width:100%;min-height:40px;font-weight:800;letter-spacing:1.3px;font-size:13px;background:#183b27;border-color:#3b8858}
+body.lan .execute{background:#0e2a33;border-color:#2a7a99}
+.save{min-height:40px}
+.note{color:var(--muted);font-size:11px;margin-top:12px;line-height:1.5}
+
+/* ── Тумблер LAN ── */
+.lan-bar{
+  border:1px dashed #385744;padding:10px;margin:10px 0;
+  display:grid;grid-template-columns:auto minmax(120px,1fr);gap:8px;align-items:center;
+}
+body.lan .lan-bar{border-color:#2a7a99;background:#0a1a2277}
+.lan-bar label{display:flex;align-items:center;gap:8px;color:var(--accent);font-weight:700;cursor:pointer}
+.lan-bar input[type=checkbox]{accent-color:var(--accent);width:16px;height:16px}
+.lan-bar input[type=text]{margin:0}
+
+@media(max-width:760px){
+  .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  body{padding:8px}.card{padding:9px}
+  .actions{grid-template-columns:minmax(0,1fr) 58px}
+  .execute{padding:8px 4px}
+}
+@media(max-width:390px){
+  .grid{grid-template-columns:1fr}
+  header{align-items:flex-start;flex-direction:column}
+}
+</style>
+</head>
+<body>
+<main>
+<header>
+  <div>
+    <h1>CONTROL PANEL <span style="color:var(--muted)">// MACRODROID</span></h1>
+    <div class="sub" id="modeLabel">LOCAL CONSOLE · WEBHOOK TRIGGER</div>
+  </div>
+
+  <div class="status" id="status" aria-live="polite">
+    <div class="icon-3d-wrap">
+      <!-- USB 3D -->
+      <svg class="icon-3d" id="iconUsb" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+        <defs>
+          <linearGradient id="usbGrad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#b8ffce"/>
+            <stop offset="50%" stop-color="#75ffad"/>
+            <stop offset="100%" stop-color="#2a7a4a"/>
+          </linearGradient>
+          <filter id="usbShadow" x="-50%" y="-50%" width="200%" height="200%">
+            <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#000" flood-opacity="0.7"/>
+          </filter>
+        </defs>
+        <g filter="url(#usbShadow)">
+          <path d="M16 27V6M16 6L12.5 9.5M16 6L19.5 9.5M16 15H9V19M16 12H23V9"
+                stroke="url(#usbGrad)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="16" cy="27" r="2.4" stroke="url(#usbGrad)" stroke-width="2"/>
+          <rect x="6.8" y="19" width="4.4" height="4.4" rx=".5" stroke="url(#usbGrad)" stroke-width="1.8"/>
+          <path d="M21 6.5H25V10.5H21Z" stroke="url(#usbGrad)" stroke-width="1.8" stroke-linejoin="round"/>
+        </g>
+      </svg>
+      <!-- Wi-Fi 3D (скрыт по умолчанию) -->
+      <svg class="icon-3d" id="iconWifi" viewBox="0 0 32 32" fill="none" aria-hidden="true" style="display:none">
+        <defs>
+          <linearGradient id="wifiGrad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#b8f0ff"/>
+            <stop offset="50%" stop-color="#66e0ff"/>
+            <stop offset="100%" stop-color="#2a7a99"/>
+          </linearGradient>
+          <filter id="wifiShadow" x="-50%" y="-50%" width="200%" height="200%">
+            <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#000" flood-opacity="0.7"/>
+          </filter>
+        </defs>
+        <g filter="url(#wifiShadow)">
+          <path d="M16 24a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z" stroke="url(#wifiGrad)" stroke-width="2"/>
+          <path d="M10 18a8 8 0 0 1 12 0" stroke="url(#wifiGrad)" stroke-width="2" stroke-linecap="round"/>
+          <path d="M6 14a14 14 0 0 1 20 0" stroke="url(#wifiGrad)" stroke-width="2" stroke-linecap="round"/>
+        </g>
+      </svg>
+    </div>
+    <div class="status-copy">
+      <div class="status-main"><span class="dot"></span> <span id="statusMain">SYSTEM READY</span></div>
+      <div class="status-sub" id="statusSub">USB LINK // IDLE</div>
+    </div>
+  </div>
+</header>
+
+<div class="toolbar">
+  <button id="saveAll">SAVE ALL</button>
+  <button id="clear">CLEAR URLS</button>
+</div>
+
+<div class="lan-bar">
+  <label><input type="checkbox" id="lanMode"> OFFLINE / LAN MODE</label>
+  <input type="text" id="lanIp" placeholder="IP друга, например 192.168.1.148:8080">
+</div>
+
+<section class="grid" id="grid"></section>
+
+<div class="note" id="footerNote">
+  EXECUTE отправляет запрос к вебхуку в фоне и не открывает ссылку в новой вкладке. Обычные вебхуки MacroDroid требуют интернет. LAN-режим сработает только если на телефоне друга отдельно настроен локальный приёмник, понимающий эти команды.
+</div>
+</main>
+
+<script>
+const macros = [
+ {name:"Бз",rating:1,url:"https://trigger.macrodroid.com/4cb4dd79-27e0-4133-9899-3183105aafb7/мини-бз"},
+ {name:"Бзз-бзз",rating:2,url:"https://trigger.macrodroid.com/4cb4dd79-27e0-4133-9899-3183105aafb7/Бззз"},
+ {name:"Новости",rating:3,url:"https://trigger.macrodroid.com/4cb4dd79-27e0-4133-9899-3183105aafb7/новостизвук"},
+ {name:"Сброс прозвона (визуал)",rating:4,url:""},
+ {name:"Назад",rating:5,url:"https://trigger.macrodroid.com/4cb4dd79-27e0-4133-9899-3183105aafb7/Назад"},
+ {name:"Василиса в чате",rating:6,url:"https://trigger.macrodroid.com/4cb4dd79-27e0-4133-9899-3183105aafb7/ЖОПА"},
+ {name:"Тревога",rating:7,url:"https://trigger.macrodroid.com/4cb4dd79-27e0-4133-9899-3183105aafb7/БУУМТ"},
+ {name:"Блок.экрана",rating:8,url:"https://trigger.macrodroid.com/4cb4dd79-27e0-4133-9899-3183105aafb7/блок"},
+ {name:"Скример",rating:9,url:"https://trigger.macrodroid.com/4cb4dd79-27e0-4133-9899-3183105aafb7/СКРИМЕР"}
+];
+
+const grid = document.getElementById('grid');
+const lanCheckbox = document.getElementById('lanMode');
+const lanIpInput = document.getElementById('lanIp');
+const statusMain = document.getElementById('statusMain');
+const statusSub = document.getElementById('statusSub');
+const statusPanel = document.getElementById('status');
+const modeLabel = document.getElementById('modeLabel');
+const iconUsb = document.getElementById('iconUsb');
+const iconWifi = document.getElementById('iconWifi');
+const saveAllBtn = document.getElementById('saveAll');
+const clearBtn = document.getElementById('clear');
+
+const safeId = s => s.toLowerCase().replace(/[^a-zа-я0-9]+/gi,'-');
+const LS_PREFIX = 'macro-url-';
+const LS_LAN_PREFIX = 'macro-lan-url-';
+
+function getKey(name){ return (lanCheckbox.checked ? LS_LAN_PREFIX : LS_PREFIX) + name; }
+
+function render(){
+  grid.innerHTML = '';
+  macros.forEach((m,i)=>{
+    const id = safeId(m.name)+'-'+i;
+    const card = document.createElement('article');
+    card.className = 'card';
+    card.innerHTML = `
+      <div class="top">
+        <div>
+          <div class="num">MACRO_${String(i+1).padStart(2,'0')}</div>
+          <div class="name"></div>
+        </div>
+        <div class="rating">${m.rating}/10</div>
+      </div>
+      <input type="url" aria-label="URL" id="url-${id}" placeholder="Вставь URL">
+      <div class="actions">
+        <button class="execute" id="run-${id}">▶ EXECUTE</button>
+        <button class="save" id="save-${id}">SAVE</button>
+      </div>`;
+    card.querySelector('.name').textContent = m.name;
+    grid.appendChild(card);
+
+    const field = card.querySelector('input');
+    field.value = localStorage.getItem(getKey(m.name)) || (lanCheckbox.checked ? '' : m.url);
+    field.placeholder = lanCheckbox.checked
+      ? 'http://192.168.1.XXX:8080/путь'
+      : 'Вставь URL вебхука';
+
+    card.querySelector('.save').addEventListener('click', ()=>{
+      localStorage.setItem(getKey(m.name), field.value.trim());
+      setStatus('SAVED: ' + m.name);
+    });
+
+    card.querySelector('.execute').addEventListener('click', async ()=>{
+      const url = field.value.trim();
+      if(!url){ setStatus('NO URL: ' + m.name); return; }
+
+      if(lanCheckbox.checked){
+        let target = url;
+        if(!/^https?:\/\//i.test(target)){
+          const ip = (lanIpInput.value.trim() || '').replace(/^https?:\/\//i,'').replace(/\/+$/,'');
+          if(!ip){ setStatus('ENTER LAN IP'); return; }
+          target = 'http://' + ip + '/' + encodeURIComponent(m.name);
+        }
+        fire(target, m.name);
+      } else {
+        if(m.rating >= 8 && !confirm('Запустить макрос «'+m.name+'» ('+m.rating+'/10)?')) return;
+        fire(url, m.name);
+      }
+    });
+  });
+}
+
+function setStatus(s, busy=false){
+  statusPanel.classList.toggle('busy', busy);
+  if(s.startsWith('SENDING:')){
+    statusMain.textContent = 'EXECUTING';
+    statusSub.textContent = 'LINK ACTIVE // ' + s.slice(8).toUpperCase();
+  } else if(s.startsWith('SENT:')){
+    statusMain.textContent = 'REQUEST SENT';
+    statusSub.textContent = 'WEBHOOK // ' + s.slice(5).toUpperCase();
+  } else if(s.startsWith('REQUEST SENT')){
+    statusMain.textContent = 'REQUEST DISPATCHED';
+    statusSub.textContent = 'RESPONSE NOT EXPOSED';
+  } else if(s.startsWith('SAVED:')){
+    statusMain.textContent = 'CONFIG SAVED';
+    statusSub.textContent = s.slice(6).toUpperCase();
+  } else if(s === 'ALL URLS SAVED'){
+    statusMain.textContent = 'CONFIG SAVED';
+    statusSub.textContent = 'ALL WEBHOOKS STORED';
+  } else if(s === 'URLS CLEARED'){
+    statusMain.textContent = 'FIELDS CLEARED';
+    statusSub.textContent = 'WAITING FOR INPUT';
+  } else if(s.startsWith('NO URL:')){
+    statusMain.textContent = 'URL MISSING';
+    statusSub.textContent = s.slice(7).toUpperCase();
+  } else if(s === 'ENTER LAN IP'){
+    statusMain.textContent = 'LAN TARGET REQUIRED';
+    statusSub.textContent = 'ENTER LOCAL IP:PORT';
+  } else {
+    statusMain.textContent = s.toUpperCase();
+    statusSub.textContent = 'USB LINK // IDLE';
+  }
+}
+
+function fire(url, name){
+  setStatus('SENDING: ' + name, true);
+  fetch(url, {method:'GET', mode:'no-cors', cache:'no-store'})
+    .then(()=> setStatus('SENT: ' + name))
+    .catch(()=> setStatus('REQUEST SENT / RESPONSE UNAVAILABLE'));
+}
+
+lanCheckbox.addEventListener('change', ()=>{
+  const on = lanCheckbox.checked;
+  document.body.classList.toggle('lan', on);
+  iconUsb.style.display = on ? 'none' : 'block';
+  iconWifi.style.display = on ? 'block' : 'none';
+  modeLabel.textContent = on
+    ? 'OFFLINE MODE · LOCAL LAN TRIGGER'
+    : 'LOCAL CONSOLE · WEBHOOK TRIGGER';
+  document.getElementById('footerNote').textContent = on
+    ? 'OFFLINE MODE: укажи IP друга в формате 192.168.1.148:8080. Ссылка будет собрана как http://IP/ИмяМакроса. Работает только в одной Wi-Fi сети без VPN.'
+    : 'EXECUTE отправляет запрос к вебхуку в фоне и не открывает ссылку в новой вкладке. Обычные вебхуки MacroDroid требуют интернет. LAN-режим сработает только если на телефоне друга отдельно настроен локальный приёмник, понимающий эти команды.';
+  render();
+  setStatus(on ? 'LAN MODE ON' : 'WEBHOOK MODE ON');
+});
+
+saveAllBtn.addEventListener('click', ()=>{
+  macros.forEach((m,i)=>{
+    const id = safeId(m.name)+'-'+i;
+    const field = document.getElementById('url-'+id);
+    if(field) localStorage.setItem(getKey(m.name), field.value.trim());
+  });
+  setStatus('ALL URLS SAVED');
+});
+
+clearBtn.addEventListener('click', ()=>{
+  if(!confirm('Очистить все URL из полей?')) return;
+  macros.forEach(m => localStorage.removeItem(getKey(m.name)));
+  render();
+  setStatus('URLS CLEARED');
+});
+
+render();
+</script>
+</body></html>
