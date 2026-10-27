@@ -10,7 +10,13 @@ WebServer server(80);
 void setup() {
   Serial.begin(115200);
   SPI.begin(18, 19, 23, 5);
-  if (!SD.begin(SD_CS)) { Serial.println("SD FAIL"); return; }
+  
+  // Принудительно снижаем скорость до 10 МГц
+  if (!SD.begin(5, SPI, 10000000)) { 
+    Serial.println("SD FAIL"); 
+  } else {
+    Serial.println("SD OK");
+  }
   
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid);
@@ -36,6 +42,7 @@ void setup() {
   });
 
   server.begin();
+  Serial.println("HTTP STARTED");
 }
 
 void loop() {
