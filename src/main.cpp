@@ -18,10 +18,10 @@ void setup() {
   WiFi.setSleep(false);
   WiFi.softAP(ssid, nullptr, WIFI_CHANNEL, false, 12);
 
-  // Перенаправляем все DNS-запросы на DevKit
+  // Перенаправляем DNS на DevKit
   dnsServer.start(53, "*", devkitIP);
 
-  // Обработчики портала
+  // Обработчики портала (Android, iOS, Windows)
   server.on("/generate_204", HTTP_GET, []() { server.sendHeader("Location", "http://192.168.4.2"); server.send(302, "text/plain", ""); });
   server.on("/gen_204", HTTP_GET, []() { server.sendHeader("Location", "http://192.168.4.2"); server.send(302, "text/plain", ""); });
   server.on("/hotspot-detect.html", HTTP_GET, []() { server.sendHeader("Location", "http://192.168.4.2"); server.send(302, "text/plain", ""); });
