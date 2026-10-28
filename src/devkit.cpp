@@ -7,9 +7,6 @@ const char* ssid = "//_CHAT_02_\\";
 #define SD_CS 5
 WebServer server(80);
 
-String chatMessages[20];
-int messageCount = 0;
-
 const char* file_manager_html = R"rawliteral(
 <!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SD Files</title>
@@ -68,24 +65,6 @@ void setup() {
   WiFi.begin(ssid);
   while (WiFi.status() != WL_CONNECTED) delay(500);
   Serial.print("IP: "); Serial.println(WiFi.localIP());
-
-  server.on("/get_messages", HTTP_GET, []() {
-    String json = "[";
-    for (int i = 0; i < messageCount; i++) {
-      json += "\"" + chatMessages[i] + "\"";
-      if (i < messageCount - 1) json += ",";
-    }
-    json += "]";
-    server.send(200, "application/json", json);
-  });
-  server.on("/send", HTTP_POST, []() {
-    String text = server.arg("text");
-    String name = server.arg("name");
-    String fullMsg = name + ": " + text;
-    if (messageCount < 20) { chatMessages[messageCount] = fullMsg; messageCount++; }
-    else { for (int i = 0; i < 19; i++) chatMessages[i] = chatMessages[i+1]; chatMessages[19] = fullMsg; }
-    server.send(200, "text/plain", "OK");
-  });
 
   server.on("/files", HTTP_GET, []() { server.send(200, "text/html", file_manager_html); });
   server.on("/list", HTTP_GET, []() {
