@@ -7,6 +7,9 @@ const char* ssid = "//_CHAT_02_\\";
 #define SD_CS 5
 WebServer server(80);
 
+String chatMessages[20];
+int messageCount = 0;
+
 const char* file_manager_html = R"rawliteral(
 <!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SD Files</title>
@@ -37,7 +40,6 @@ function delFile(name){
 </script></body></html>
 )rawliteral";
 
-// НОВАЯ СТРАНИЦА ЗАГРУЗКИ (с обходом бага кнопки)
 const char* upload_html = R"rawliteral(
 <!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Upload</title>
@@ -58,7 +60,6 @@ a { color:#35ff9b; text-decoration:none; display:block; margin-top:20px; }
 </form>
 <a href="/files">← Назад к файлам</a>
 <script>
-// Показываем кнопку "Загрузить" только когда файл выбран
 document.getElementById('fileInput').addEventListener('change', function() {
   if (this.files.length > 0) {
     document.getElementById('submitBtn').style.display = 'inline-block';
@@ -94,13 +95,47 @@ void setup() {
   while (WiFi.status() != WL_CONNECTED) delay(500);
   Serial.print("[WiFi] ✅ IP: "); Serial.println(WiFi.localIP());
 
+  // --- API ЧАТА (GET и POST) ---
+  server.on("/get_messages", HTTP_GET, []() {
+    Serial.println("[HTTP] GET /get_messages");
+    String json = "[";
+    for (int i = 0; i < messageCount; i++) {
+      json += "\"" + chatMessages[i] + "\"";
+      if (i < messageCount - 1) json += ",";
+    }
+    json += "]";
+    server.send(200, "application/json", json);
+  });
+
+  // Обработка GET /send (тот, что шлет твой HTML)
+  server.on("/send", HTTP_GET, []() {
+    String text = server.arg("text");
+    String name = server.arg("name");
+    Serial.printf("[HTTP] GET /send от %s: %s\n", name.c_str(), text.c_str());
+    String fullMsg = name + ": " + text;
+    if (messageCount < 20) { chatMessages[messageCount] = fullMsg; messageCount++; }
+    else { for (int i = 0; i < 19; i++) chatMessages[i] = chatMessages[i+1]; chatMessages[19] = fullMsg; }
+    server.send(200, "text/plain", "OK");
+  });
+
+  // Обработка POST /send (на всякий случай)
+  server.on("/send", HTTP_POST, []() {
+    String text = server.arg("text");
+    String name = server.arg("name");
+    Serial.printf("[HTTP] POST /send от %s: %s\n", name.c_str(), text.c_str());
+    String fullMsg = name + ": " + text;
+    if (messageCount < 20) { chatMessages[messageCount] = fullMsg; messageCount++; }
+    else { for (int i = 0; i < 19; i++) chatMessages[i] = chatMessages[i+1]; chatMessages[19] = fullMsg; }
+    server.send(200, "text/plain", "OK");
+  });
+
   server.on("/files", HTTP_GET, []() { 
     Serial.println("[HTTP] GET /files");
     server.send(200, "text/html", file_manager_html); 
   });
   
   server.on("/list", HTTP_GET, []() {
-    Serial.println("[HTTP] GET /list (список файлов)");
+    Serial.println("[HTTP] GET /list");
     String json = "[";
     File root = SD.open("/");
     File file = root.openNextFile();
@@ -110,7 +145,6 @@ void setup() {
         if (!first) json += ",";
         json += "\"" + String(file.name()) + "\"";
         first = false;
-        Serial.printf("[SD] Файл: %s (%d байт)\n", file.name(), file.size());
       }
       file = root.openNextFile();
     }
