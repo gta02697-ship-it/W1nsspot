@@ -9,6 +9,9 @@ WebServer server(80);
 DNSServer dnsServer;
 IPAddress devkitIP(192, 168, 4, 2);
 
+// HTML-страница для редиректа (Android понимает это лучше)
+const char* redirect_html = "<!DOCTYPE html><html><head><meta http-equiv='refresh' content='0;url=http://192.168.4.2/'></head><body>Redirecting...</body></html>";
+
 void setup() {
   Serial.begin(115200);
   delay(200);
@@ -18,27 +21,22 @@ void setup() {
   WiFi.setSleep(false);
   WiFi.softAP(ssid, nullptr, WIFI_CHANNEL, false, 12);
 
-  // DNS перенаправляет ВСЕ запросы на DevKit
+  // DNS перенаправляет всё на DevKit
   dnsServer.start(53, "*", devkitIP);
 
-  // --- АГРЕССИВНЫЙ ПОРТАЛ ---
-  // Android
-  server.on("/generate_204", HTTP_GET, []() { server.sendHeader("Location", "http://192.168.4.2"); server.send(302, "text/plain", ""); });
-  server.on("/gen_204", HTTP_GET, []() { server.sendHeader("Location", "http://192.168.4.2"); server.send(302, "text/plain", ""); });
-  // iOS / macOS
-  server.on("/hotspot-detect.html", HTTP_GET, []() { server.sendHeader("Location", "http://192.168.4.2"); server.send(302, "text/plain", ""); });
-  server.on("/library/test/success.html", HTTP_GET, []() { server.sendHeader("Location", "http://192.168.4.2"); server.send(302, "text/plain", ""); });
-  // Windows
-  server.on("/ncsi.txt", HTTP_GET, []() { server.sendHeader("Location", "http://192.168.4.2"); server.send(302, "text/plain", ""); });
-  server.on("/connecttest.txt", HTTP_GET, []() { server.sendHeader("Location", "http://192.168.4.2"); server.send(302, "text/plain", ""); });
-  // Firefox / Chrome
-  server.on("/canonical.html", HTTP_GET, []() { server.sendHeader("Location", "http://192.168.4.2"); server.send(302, "text/plain", ""); });
-  server.on("/success.txt", HTTP_GET, []() { server.sendHeader("Location", "http://192.168.4.2"); server.send(302, "text/plain", ""); });
+  // --- ОТВЕТЫ НА ПРОВЕРКИ (HTML с редиректом) ---
+  server.on("/generate_204", HTTP_GET, []() { server.send(200, "text/html", redirect_html); });
+  server.on("/gen_204", HTTP_GET, []() { server.send(200, "text/html", redirect_html); });
+  server.on("/hotspot-detect.html", HTTP_GET, []() { server.send(200, "text/html", redirect_html); });
+  server.on("/library/test/success.html", HTTP_GET, []() { server.send(200, "text/html", redirect_html); });
+  server.on("/ncsi.txt", HTTP_GET, []() { server.send(200, "text/html", redirect_html); });
+  server.on("/connecttest.txt", HTTP_GET, []() { server.send(200, "text/html", redirect_html); });
+  server.on("/canonical.html", HTTP_GET, []() { server.send(200, "text/html", redirect_html); });
+  server.on("/success.txt", HTTP_GET, []() { server.send(200, "text/html", redirect_html); });
 
-  // Все остальные запросы (включая google.com) — на DevKit
+  // Все остальные запросы (включая google.com) — тоже редирект
   server.onNotFound([]() {
-    server.sendHeader("Location", "http://192.168.4.2");
-    server.send(302, "text/plain", "");
+    server.send(200, "text/html", redirect_html);
   });
 
   server.begin();
