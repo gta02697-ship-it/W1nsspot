@@ -7,17 +7,14 @@ const char* ssid = "//_CHAT_02_\\";
 #define SD_CS 5
 WebServer server(80);
 
-// Хранилище сообщений
 String chatMessages[20];
 int messageCount = 0;
 
-// HTML для страницы файлов (в стиле сайта)
 const char* file_manager_html = R"rawliteral(
 <!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SD Files</title>
 <style>
-@font-face { font-family:"W1nssMinecraft"; src:url("/Minecraftia-Regular.ttf") format("truetype"); }
-body { background:#080604; color:#fff5e5; font-family:"W1nssMinecraft",monospace; padding:20px; }
+body { background:#080604; color:#fff5e5; font-family:sans-serif; padding:20px; }
 h2 { color:#ff6a00; border-bottom:1px solid #ff6a00; padding-bottom:10px; }
 .btn { background:#ff6a00; color:#000; padding:10px 15px; border-radius:5px; text-decoration:none; font-weight:bold; display:inline-block; margin-bottom:15px; }
 .item { border:1px solid #333; padding:10px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; background:#120b06; border-radius:5px; }
@@ -43,13 +40,11 @@ function delFile(name){
 </script></body></html>
 )rawliteral";
 
-// HTML для загрузки (в стиле сайта)
 const char* upload_html = R"rawliteral(
 <!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Upload</title>
 <style>
-@font-face { font-family:"W1nssMinecraft"; src:url("/Minecraftia-Regular.ttf") format("truetype"); }
-body { background:#080604; color:#fff5e5; font-family:"W1nssMinecraft",monospace; text-align:center; padding-top:50px; }
+body { background:#080604; color:#fff5e5; font-family:sans-serif; text-align:center; padding-top:50px; }
 h2 { color:#ff6a00; }
 input[type="file"] { color:#fff; margin:20px 0; }
 .btn { background:#ff6a00; color:#000; padding:10px 20px; border:none; border-radius:5px; font-weight:bold; cursor:pointer; }
@@ -74,7 +69,6 @@ void setup() {
   while (WiFi.status() != WL_CONNECTED) delay(500);
   Serial.print("IP: "); Serial.println(WiFi.localIP());
 
-  // API чата
   server.on("/get_messages", HTTP_GET, []() {
     String json = "[";
     for (int i = 0; i < messageCount; i++) {
@@ -93,7 +87,6 @@ void setup() {
     server.send(200, "text/plain", "OK");
   });
 
-  // Файловый менеджер
   server.on("/files", HTTP_GET, []() { server.send(200, "text/html", file_manager_html); });
   server.on("/list", HTTP_GET, []() {
     String json = "[";
@@ -118,7 +111,6 @@ void setup() {
     server.send(200, "text/plain", "OK");
   });
 
-  // Загрузка
   server.on("/upload", HTTP_GET, []() { server.send(200, "text/html", upload_html); });
   server.on("/upload", HTTP_POST, []() { server.send(200, "text/plain", "OK"); }, []() {
     HTTPUpload& upload = server.upload();
@@ -132,7 +124,6 @@ void setup() {
     }
   });
 
-  // Главная и статика
   server.on("/", []() {
     File file = SD.open("/index.html", "r");
     if (file) { server.streamFile(file, "text/html"); file.close(); }
