@@ -37,32 +37,44 @@ function delFile(name){
 </script></body></html>
 )rawliteral";
 
+// НОВАЯ СТРАНИЦА ЗАГРУЗКИ (с обходом бага кнопки)
 const char* upload_html = R"rawliteral(
 <!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Upload</title>
 <style>
 body { background:#080604; color:#fff5e5; font-family:sans-serif; text-align:center; padding-top:50px; }
 h2 { color:#ff6a00; }
-input[type="file"] { color:#fff; margin:20px 0; }
-.btn { background:#ff6a00; color:#000; padding:10px 20px; border:none; border-radius:5px; font-weight:bold; cursor:pointer; }
+.btn { background:#ff6a00; color:#000; padding:12px 24px; border:none; border-radius:5px; font-weight:bold; cursor:pointer; font-size:16px; display:inline-block; }
 a { color:#35ff9b; text-decoration:none; display:block; margin-top:20px; }
+#fileName { margin-top:15px; color:#aaa; }
 </style></head><body>
 <h2>ЗАГРУЗКА НА SD</h2>
-<form method="POST" action="/upload" enctype="multipart/form-data">
-  <input type="file" name="file"><br><br>
-  <button type="submit" class="btn">ЗАГРУЗИТЬ</button>
+<form method="POST" action="/upload" enctype="multipart/form-data" id="uploadForm">
+  <input type="file" name="file" id="fileInput" style="display:none" onchange="document.getElementById('fileName').innerText = this.files[0].name">
+  <button type="button" class="btn" onclick="document.getElementById('fileInput').click()">ВЫБРАТЬ ФАЙЛ</button>
+  <div id="fileName">Файл не выбран</div>
+  <br><br>
+  <button type="submit" class="btn" id="submitBtn" style="display:none; background:#35ff9b;">ЗАГРУЗИТЬ</button>
 </form>
 <a href="/files">← Назад к файлам</a>
+<script>
+// Показываем кнопку "Загрузить" только когда файл выбран
+document.getElementById('fileInput').addEventListener('change', function() {
+  if (this.files.length > 0) {
+    document.getElementById('submitBtn').style.display = 'inline-block';
+  }
+});
+</script>
 </body></html>
 )rawliteral";
 
 void setup() {
   Serial.begin(115200);
+  delay(1000);
   Serial.println("\n--- DEVKIT START ---");
   
   SPI.begin(18, 19, 23, 5);
   
-  // Пытаемся инициализировать карту с задержкой (до 10 попыток)
   int sd_attempts = 0;
   while (!SD.begin(5, SPI, 10000000) && sd_attempts < 10) {
     Serial.printf("[SD] Попытка %d/10: ошибка\n", sd_attempts + 1);
@@ -82,7 +94,6 @@ void setup() {
   while (WiFi.status() != WL_CONNECTED) delay(500);
   Serial.print("[WiFi] ✅ IP: "); Serial.println(WiFi.localIP());
 
-  // Обработчики с логами
   server.on("/files", HTTP_GET, []() { 
     Serial.println("[HTTP] GET /files");
     server.send(200, "text/html", file_manager_html); 
