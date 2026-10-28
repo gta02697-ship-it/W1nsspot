@@ -105,8 +105,11 @@ void setup() {
       String name = (colonIndex > 0) ? msg.substring(0, colonIndex) : "???";
       String text = (colonIndex > 0) ? msg.substring(colonIndex + 2) : msg;
       
+      name.replace("\\", "\\\\");
       name.replace("\"", "\\\"");
+      text.replace("\\", "\\\\");
       text.replace("\"", "\\\"");
+      text.replace("\n", "\\n");
       
       json += "{\"id\":\"srv_" + String(i) + "\",\"name\":\"" + name + "\",\"text\":\"" + text + "\"}";
       if (i < messageCount - 1) json += ",";
