@@ -73,41 +73,48 @@ void setup() {
   Serial.begin(115200);
   delay(1000);
   Serial.println("\n--- DEVKIT START ---");
-  
+
   SPI.begin(18, 19, 23, 5);
-  
+
   int sd_attempts = 0;
   while (!SD.begin(5, SPI, 10000000) && sd_attempts < 10) {
     Serial.printf("[SD] Попытка %d/10: ошибка\n", sd_attempts + 1);
     delay(500);
     sd_attempts++;
   }
-  
+
   if (sd_attempts >= 10) {
     Serial.println("❌ SD CARD NOT FOUND");
   } else {
     Serial.println("✅ SD OK");
   }
-  
+
   WiFi.mode(WIFI_STA);
   Serial.printf("[WiFi] Подключаюсь к %s...\n", ssid);
   WiFi.begin(ssid);
   while (WiFi.status() != WL_CONNECTED) delay(500);
   Serial.print("[WiFi] ✅ IP: "); Serial.println(WiFi.localIP());
 
-  // --- API ЧАТА (GET и POST) ---
+  // --- API ЧАТА ---
   server.on("/get_messages", HTTP_GET, []() {
     Serial.println("[HTTP] GET /get_messages");
     String json = "[";
     for (int i = 0; i < messageCount; i++) {
-      json += "\"" + chatMessages[i] + "\"";
+      String msg = chatMessages[i];
+      int colonIndex = msg.indexOf(": ");
+      String name = (colonIndex > 0) ? msg.substring(0, colonIndex) : "???";
+      String text = (colonIndex > 0) ? msg.substring(colonIndex + 2) : msg;
+      
+      name.replace("\"", "\\\"");
+      text.replace("\"", "\\\"");
+      
+      json += "{\"id\":\"srv_" + String(i) + "\",\"name\":\"" + name + "\",\"text\":\"" + text + "\"}";
       if (i < messageCount - 1) json += ",";
     }
     json += "]";
     server.send(200, "application/json", json);
   });
 
-  // Обработка GET /send (тот, что шлет твой HTML)
   server.on("/send", HTTP_GET, []() {
     String text = server.arg("text");
     String name = server.arg("name");
@@ -118,7 +125,6 @@ void setup() {
     server.send(200, "text/plain", "OK");
   });
 
-  // Обработка POST /send (на всякий случай)
   server.on("/send", HTTP_POST, []() {
     String text = server.arg("text");
     String name = server.arg("name");
@@ -129,11 +135,11 @@ void setup() {
     server.send(200, "text/plain", "OK");
   });
 
-  server.on("/files", HTTP_GET, []() { 
+  server.on("/files", HTTP_GET, []() {
     Serial.println("[HTTP] GET /files");
-    server.send(200, "text/html", file_manager_html); 
+    server.send(200, "text/html", file_manager_html);
   });
-  
+
   server.on("/list", HTTP_GET, []() {
     Serial.println("[HTTP] GET /list");
     String json = "[";
@@ -151,7 +157,7 @@ void setup() {
     json += "]";
     server.send(200, "application/json", json);
   });
-  
+
   server.on("/delete", HTTP_GET, []() {
     String file = server.arg("file");
     Serial.printf("[HTTP] DELETE %s\n", file.c_str());
@@ -160,14 +166,14 @@ void setup() {
     server.send(200, "text/plain", "OK");
   });
 
-  server.on("/upload", HTTP_GET, []() { 
+  server.on("/upload", HTTP_GET, []() {
     Serial.println("[HTTP] GET /upload");
-    server.send(200, "text/html", upload_html); 
+    server.send(200, "text/html", upload_html);
   });
-  
-  server.on("/upload", HTTP_POST, []() { 
+
+  server.on("/upload", HTTP_POST, []() {
     Serial.println("[HTTP] POST /upload — файл загружен");
-    server.send(200, "text/plain", "OK"); 
+    server.send(200, "text/plain", "OK");
   }, []() {
     HTTPUpload& upload = server.upload();
     if (upload.status == UPLOAD_FILE_START) {
@@ -186,23 +192,23 @@ void setup() {
   server.on("/", []() {
     Serial.println("[HTTP] GET / (главная страница)");
     File file = SD.open("/index.html", "r");
-    if (file) { 
+    if (file) {
       Serial.printf("[SD] Отдаю index.html (%d байт)\n", file.size());
-      server.streamFile(file, "text/html"); 
-      file.close(); 
+      server.streamFile(file, "text/html");
+      file.close();
     } else {
       Serial.println("❌ index.html НЕ НАЙДЕН");
       server.send(404, "text/plain", "404");
     }
   });
-  
+
   server.onNotFound([]() {
     String path = server.uri();
     Serial.printf("[HTTP] GET %s\n", path.c_str());
-    if (!SD.exists(path)) { 
+    if (!SD.exists(path)) {
       Serial.printf("[SD] Файл %s не найден\n", path.c_str());
-      server.send(404, "text/plain", "404"); 
-      return; 
+      server.send(404, "text/plain", "404");
+      return;
     }
     File file = SD.open(path, "r");
     String type = "text/plain";
