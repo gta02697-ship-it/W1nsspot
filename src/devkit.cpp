@@ -58,16 +58,38 @@ a { color:#35ff9b; text-decoration:none; display:block; margin-top:20px; }
 
 void setup() {
   Serial.begin(115200);
+  Serial.println("\n--- DEVKIT START ---");
+  
   SPI.begin(18, 19, 23, 5);
-  if (!SD.begin(5, SPI, 10000000)) { Serial.println("SD FAIL"); } else { Serial.println("SD OK"); }
+  
+  // Пытаемся инициализировать карту с задержкой (до 10 попыток)
+  int sd_attempts = 0;
+  while (!SD.begin(5, SPI, 10000000) && sd_attempts < 10) {
+    Serial.printf("[SD] Попытка %d/10: ошибка\n", sd_attempts + 1);
+    delay(500);
+    sd_attempts++;
+  }
+  
+  if (sd_attempts >= 10) {
+    Serial.println("❌ SD CARD NOT FOUND");
+  } else {
+    Serial.println("✅ SD OK");
+  }
   
   WiFi.mode(WIFI_STA);
+  Serial.printf("[WiFi] Подключаюсь к %s...\n", ssid);
   WiFi.begin(ssid);
   while (WiFi.status() != WL_CONNECTED) delay(500);
-  Serial.print("IP: "); Serial.println(WiFi.localIP());
+  Serial.print("[WiFi] ✅ IP: "); Serial.println(WiFi.localIP());
 
-  server.on("/files", HTTP_GET, []() { server.send(200, "text/html", file_manager_html); });
+  // Обработчики с логами
+  server.on("/files", HTTP_GET, []() { 
+    Serial.println("[HTTP] GET /files");
+    server.send(200, "text/html", file_manager_html); 
+  });
+  
   server.on("/list", HTTP_GET, []() {
+    Serial.println("[HTTP] GET /list (список файлов)");
     String json = "[";
     File root = SD.open("/");
     File file = root.openNextFile();
@@ -77,52 +99,79 @@ void setup() {
         if (!first) json += ",";
         json += "\"" + String(file.name()) + "\"";
         first = false;
+        Serial.printf("[SD] Файл: %s (%d байт)\n", file.name(), file.size());
       }
       file = root.openNextFile();
     }
     json += "]";
     server.send(200, "application/json", json);
   });
+  
   server.on("/delete", HTTP_GET, []() {
     String file = server.arg("file");
+    Serial.printf("[HTTP] DELETE %s\n", file.c_str());
     if (!file.startsWith("/")) file = "/" + file;
     SD.remove(file);
     server.send(200, "text/plain", "OK");
   });
 
-  server.on("/upload", HTTP_GET, []() { server.send(200, "text/html", upload_html); });
-  server.on("/upload", HTTP_POST, []() { server.send(200, "text/plain", "OK"); }, []() {
+  server.on("/upload", HTTP_GET, []() { 
+    Serial.println("[HTTP] GET /upload");
+    server.send(200, "text/html", upload_html); 
+  });
+  
+  server.on("/upload", HTTP_POST, []() { 
+    Serial.println("[HTTP] POST /upload — файл загружен");
+    server.send(200, "text/plain", "OK"); 
+  }, []() {
     HTTPUpload& upload = server.upload();
     if (upload.status == UPLOAD_FILE_START) {
       String filename = "/" + upload.filename;
+      Serial.printf("[UPLOAD] Начало: %s\n", filename.c_str());
       File file = SD.open(filename, FILE_WRITE);
       if (file) file.close();
     } else if (upload.status == UPLOAD_FILE_WRITE) {
       File file = SD.open("/" + upload.filename, FILE_APPEND);
       if (file) { file.write(upload.buf, upload.currentSize); file.close(); }
+    } else if (upload.status == UPLOAD_FILE_END) {
+      Serial.printf("[UPLOAD] Завершено: %s (%d байт)\n", upload.filename.c_str(), upload.totalSize);
     }
   });
 
   server.on("/", []() {
+    Serial.println("[HTTP] GET / (главная страница)");
     File file = SD.open("/index.html", "r");
-    if (file) { server.streamFile(file, "text/html"); file.close(); }
-    else server.send(404, "text/plain", "404");
+    if (file) { 
+      Serial.printf("[SD] Отдаю index.html (%d байт)\n", file.size());
+      server.streamFile(file, "text/html"); 
+      file.close(); 
+    } else {
+      Serial.println("❌ index.html НЕ НАЙДЕН");
+      server.send(404, "text/plain", "404");
+    }
   });
+  
   server.onNotFound([]() {
     String path = server.uri();
-    if (!SD.exists(path)) { server.send(404, "text/plain", "404"); return; }
+    Serial.printf("[HTTP] GET %s\n", path.c_str());
+    if (!SD.exists(path)) { 
+      Serial.printf("[SD] Файл %s не найден\n", path.c_str());
+      server.send(404, "text/plain", "404"); 
+      return; 
+    }
     File file = SD.open(path, "r");
     String type = "text/plain";
     if (path.endsWith(".html")) type = "text/html";
     else if (path.endsWith(".png")) type = "image/png";
     else if (path.endsWith(".ttf")) type = "font/ttf";
     else if (path.endsWith(".mp4")) type = "video/mp4";
+    Serial.printf("[SD] Отдаю %s (%d байт)\n", path.c_str(), file.size());
     server.streamFile(file, type);
     file.close();
   });
 
   server.begin();
-  Serial.println("HTTP STARTED");
+  Serial.println("✅ HTTP STARTED");
 }
 
 void loop() { server.handleClient(); }
