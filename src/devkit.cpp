@@ -1,3 +1,4 @@
+bool globalFatal = false;
 #include <WiFi.h>
 #include <WebServer.h>
 #include <SPI.h>
@@ -106,6 +107,8 @@ void setup() {
     server.streamFile(file, type); file.close();
   });
 
+  server.on("/fatal", HTTP_POST, []() { globalFatal = true; server.send(200, "text/plain", "OK"); });
+  server.on("/get_fatal_status", HTTP_GET, []() { String json = "{\"fatal\": " + String(globalFatal ? "true" : "false") + "}"; server.send(200, "application/json", json); });
   server.begin();
 }
 
