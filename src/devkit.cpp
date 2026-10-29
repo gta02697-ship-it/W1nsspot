@@ -64,7 +64,7 @@ void setup() {
   SPI.begin(18, 19, 23, 5);
 
   int sd_attempts = 0;
-  while (!SD.begin(5, SPI, 10000000) && sd_attempts < 10) { delay(500); sd_attempts++; }
+  while (!SD.begin(5, SPI, 4000000) && sd_attempts < 10) { delay(500); sd_attempts++; }
   bool sdOk = (sd_attempts < 10);
 
   WiFi.mode(WIFI_STA);
