@@ -65,13 +65,22 @@ void setup() {
 
   SPI.begin(18, 19, 23, 5);
   
-  // ИСПОЛЬЗУЕМ 1 МГц (1000000) ВМЕСТО 4 МГц
-  bool sdOk = SD.begin(5, SPI, 1000000); 
+  bool sdOk = false;
+  uint32_t speeds[] = {20000000, 10000000, 6000000, 4000000, 2000000, 1000000};
   
-  if (sdOk) {
-    Serial.println("✅ SD OK (Speed: 1MHz)");
-  } else {
-    Serial.println("❌ SD CARD NOT FOUND");
+  for (int i = 0; i < 6; i++) {
+    Serial.printf("[SD] Пробую скорость %d Гц...\n", speeds[i]);
+    if (SD.begin(5, SPI, speeds[i])) {
+      Serial.printf("✅ SD OK на скорости %d Гц\n", speeds[i]);
+      sdOk = true;
+      break;
+    }
+    SD.end();
+    delay(100);
+  }
+
+  if (!sdOk) {
+    Serial.println("❌ SD CARD NOT FOUND. Работаем без карты.");
   }
 
   WiFi.mode(WIFI_STA);
