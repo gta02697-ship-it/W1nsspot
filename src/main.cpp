@@ -2,7 +2,7 @@
 #include <WebServer.h>
 #include <DNSServer.h>
 
-const char* ssid = "//_CHAT_02_\\";
+const char* ssid = "༺✧₭Øⳑ⋮ⱱⱥ₦✧༻";
 const int WIFI_CHANNEL = 1;
 
 WebServer server(80);
