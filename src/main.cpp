@@ -1,8 +1,6 @@
 #include <WiFi.h>
 #include <WebServer.h>
 #include <DNSServer.h>
-#include <freertos/FreeRTOS.h>
-#include <freertos/task.h>
 
 const char* ssid = "༺✧₭Øⳑ⋮ⱱⱥ₦✧༻";
 const int WIFI_CHANNEL = 1;
@@ -10,34 +8,7 @@ const int WIFI_CHANNEL = 1;
 WebServer server(80);
 DNSServer dnsServer;
 
-// Переменные для замера нагрузки
-unsigned long lastIdleTime = 0;
-unsigned long lastTotalTime = 0;
-float cpuLoad = 0.0;
-
-void calculateCPU() {
-  // Получаем время простоя Idle Task (в тиках FreeRTOS)
-  unsigned long idleTime = xTaskGetIdleTickCount(0); // Core 0
-  unsigned long totalTime = xTaskGetTickCount();
-  
-  if (lastTotalTime > 0) {
-    unsigned long deltaIdle = idleTime - lastIdleTime;
-    unsigned long deltaTotal = totalTime - lastTotalTime;
-    
-    if (deltaTotal > 0) {
-      float idlePercent = (float)deltaIdle / (float)deltaTotal * 100.0;
-      cpuLoad = 100.0 - idlePercent; // Нагрузка = 100% - простой
-      if (cpuLoad < 0) cpuLoad = 0;
-      if (cpuLoad > 100) cpuLoad = 100;
-    }
-  }
-  lastIdleTime = idleTime;
-  lastTotalTime = totalTime;
-}
-
 void handleStats() {
-  calculateCPU();
-  
   uint32_t freeHeap = ESP.getFreeHeap();
   uint32_t totalHeap = ESP.getHeapSize();
   uint32_t usedHeap = totalHeap - freeHeap;
@@ -45,11 +16,14 @@ void handleStats() {
   // ЧЕСТНАЯ ТЕМПЕРАТУРА ПРОЦЕССОРА (без ограничений)
   float temp = temperatureRead();
   
+  // Реальная частота процессора (240 МГц или 160 МГц)
+  int cpuFreq = getCpuFrequencyMhz();
+  
   String json = "{";
   json += "\"ram_used\":" + String(usedHeap / 1024) + ",";
   json += "\"ram_total\":" + String(totalHeap / 1024) + ",";
   json += "\"temp\":" + String(temp, 1) + ",";
-  json += "\"load\":" + String((int)cpuLoad);
+  json += "\"freq\":" + String(cpuFreq);
   json += "}";
   
   server.sendHeader("Access-Control-Allow-Origin", "*");
@@ -71,10 +45,6 @@ void setup() {
   WiFi.setSleep(false);
   WiFi.softAP(ssid, nullptr, WIFI_CHANNEL, false, 12);
   dnsServer.start(53, "*", WiFi.softAPIP());
-
-  // Инициализация счетчиков для нагрузки
-  lastIdleTime = xTaskGetIdleTickCount(0);
-  lastTotalTime = xTaskGetTickCount();
 
   server.on("/stats", HTTP_GET, handleStats);
   server.on("/generate_204", HTTP_GET, []() { server.send(200, "text/html", portal_html); });
