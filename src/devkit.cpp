@@ -13,8 +13,7 @@ IPAddress connectedIPs[20];
 int connectedCount = 0;
 
 const char* file_manager_html = R"rawliteral(
-<!DOCTYPE html>
-<html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SD Управление</title>
 <style>
 body { background:#080604; color:#fff5e5; font-family:monospace; padding:15px; }
@@ -98,10 +97,7 @@ void setup() {
     uint32_t totalHeap = ESP.getHeapSize();
     uint32_t usedHeap = totalHeap - freeHeap;
     
-    // ЧЕСТНАЯ ТЕМПЕРАТУРА ПРОЦЕССОРА
     float temp = temperatureRead();
-    
-    // РЕАЛЬНАЯ ЧАСТОТА ПРОЦЕССОРА
     int cpuFreq = getCpuFrequencyMhz();
     
     String json = "{";
