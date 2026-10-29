@@ -3,7 +3,7 @@
 #include <SPI.h>
 #include <SD.h>
 
-const char* ssid = "//_CHAT_02_\\";
+const char* ssid = "༺✧₭Øⳑ⋮ⱱⱥ₦✧༻"; // Новое имя!
 #define SD_CS 5
 WebServer server(80);
 
