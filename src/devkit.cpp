@@ -24,6 +24,9 @@ const char* file_manager_html = R"rawliteral(
 
 void setup() {
   Serial.begin(115200);
+  Serial.setDebugOutput(true);
+  Serial.println("\n\n=== START W1NSSPOT DEVKIT ===");
+  Serial.begin(115200);
   delay(1000);
   SPI.begin(18, 19, 23, 5);
   
