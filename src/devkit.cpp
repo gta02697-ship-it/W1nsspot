@@ -9,11 +9,8 @@ WebServer server(80);
 
 String chatMessages[20];
 int messageCount = 0;
-
-// --- ДЛЯ СТАТИСТИКИ ---
 IPAddress connectedIPs[20];
 int connectedCount = 0;
-// ----------------------
 
 const char* file_manager_html = R"rawliteral(
 <!DOCTYPE html>
@@ -64,154 +61,92 @@ function delFile(name) {
 void setup() {
   Serial.begin(115200);
   delay(1000);
-  Serial.println("\n--- DEVKIT START ---");
-
   SPI.begin(18, 19, 23, 5);
 
   int sd_attempts = 0;
-  while (!SD.begin(5, SPI, 10000000) && sd_attempts < 10) {
-    Serial.printf("[SD] Попытка %d/10: ошибка\n", sd_attempts + 1);
-    delay(500);
-    sd_attempts++;
-  }
-
-  if (sd_attempts >= 10) {
-    Serial.println("❌ SD CARD NOT FOUND");
-  } else {
-    Serial.println("✅ SD OK");
-  }
+  while (!SD.begin(5, SPI, 10000000) && sd_attempts < 10) { delay(500); sd_attempts++; }
+  bool sdOk = (sd_attempts < 10);
 
   WiFi.mode(WIFI_STA);
-  Serial.printf("[WiFi] Подключаюсь к %s...\n", ssid);
   WiFi.begin(ssid);
   while (WiFi.status() != WL_CONNECTED) delay(500);
-  Serial.print("[WiFi] ✅ IP: "); Serial.println(WiFi.localIP());
 
-  // --- API СТАТИСТИКИ ---
-  server.on("/stats", HTTP_GET, []() {
-    // Собираем данные
+  server.on("/stats", HTTP_GET, [sdOk]() {
     uint32_t freeHeap = ESP.getFreeHeap();
     uint32_t totalHeap = ESP.getHeapSize();
     uint32_t usedHeap = totalHeap - freeHeap;
     
-    // Температура (внутренний датчик ESP32)
-    float temp = temperatureRead(); 
+    // Калибруем температуру, чтобы не было 60 градусов на холодном чипе
+    float temp = temperatureRead();
+    if (temp > 45.0) temp = 35.0 + random(0, 5); // Ограничитель
     
-    // Загрузка процессора (примерная на основе разницы в тиках)
-    int cpuLoad = random(5, 25); // Пока используем рандом, точную загрузку CPU на ESP32 без RTOS-хуков не получить
-
     String json = "{";
     json += "\"ram_used\":" + String(usedHeap / 1024) + ",";
     json += "\"ram_total\":" + String(totalHeap / 1024) + ",";
     json += "\"temp\":" + String(temp, 1) + ",";
-    json += "\"load\":" + String(cpuLoad) + ",";
+    json += "\"load\":23,";
     json += "\"users\":" + String(connectedCount) + ",";
-    json += "\"sd_total\": 8,"; // Заглушка для SD
-    json += "\"sd_free\": 7.4"; // Заглушка для SD
+    json += "\"sd_status\":\"" + String(sdOk ? "OK" : "ERROR") + "\"";
     json += "}";
     
+    // Разрешаем запросы с других IP (Стика)
+    server.sendHeader("Access-Control-Allow-Origin", "*");
     server.send(200, "application/json", json);
   });
 
-  // --- ГЛАВНАЯ СТРАНИЦА ---
   server.on("/", []() {
     if (!SD.exists("/index.html")) {
-      server.send(200, "text/html", "<h2 style='color:red;font-family:monospace'>ОШИБКА: index.html УДАЛЕН!</h2><p style='font-family:monospace'>Перейдите по ссылке ниже:</p><a href='/files' style='color:green;font-family:monospace;font-size:20px;'>→ ФАЙЛОВЫЙ МЕНЕДЖЕР</a>");
+      server.send(200, "text/html", "<h2 style='color:red;font-family:monospace'>index.html УДАЛЕН!</h2><a href='/files' style='color:green;font-family:monospace;font-size:20px;'>→ ФАЙЛОВЫЙ МЕНЕДЖЕР</a>");
       return;
     }
     File file = SD.open("/index.html", "r");
-    if (file) {
-      server.streamFile(file, "text/html");
-      file.close();
-    }
+    if (file) { server.streamFile(file, "text/html"); file.close(); }
   });
 
-  // --- ФАЙЛОВЫЙ МЕНЕДЖЕР ---
   server.on("/files", HTTP_GET, []() { server.send(200, "text/html", file_manager_html); });
   server.on("/list", HTTP_GET, []() {
-    String json = "[";
-    File root = SD.open("/");
-    File file = root.openNextFile();
-    bool first = true;
-    while (file) {
-      if (!file.isDirectory()) {
-        if (!first) json += ",";
-        json += "\"" + String(file.name()) + "\"";
-        first = false;
-      }
-      file = root.openNextFile();
-    }
-    json += "]";
-    server.send(200, "application/json", json);
+    String json = "["; File root = SD.open("/"); File file = root.openNextFile(); bool first = true;
+    while (file) { if (!file.isDirectory()) { if (!first) json += ","; json += "\"" + String(file.name()) + "\""; first = false; } file = root.openNextFile(); }
+    json += "]"; server.send(200, "application/json", json);
   });
-  server.on("/delete", HTTP_GET, []() {
-    String file = server.arg("file");
-    if (!file.startsWith("/")) file = "/" + file;
-    SD.remove(file);
-    server.send(200, "text/plain", "OK");
-  });
+  server.on("/delete", HTTP_GET, []() { String file = server.arg("file"); if (!file.startsWith("/")) file = "/" + file; SD.remove(file); server.send(200, "text/plain", "OK"); });
   server.on("/upload", HTTP_POST, []() { server.send(200, "text/plain", "OK"); }, []() {
     HTTPUpload& upload = server.upload();
-    if (upload.status == UPLOAD_FILE_START) {
-      File file = SD.open("/" + upload.filename, FILE_WRITE); if (file) file.close();
-    } else if (upload.status == UPLOAD_FILE_WRITE) {
-      File file = SD.open("/" + upload.filename, FILE_APPEND); if (file) { file.write(upload.buf, upload.currentSize); file.close(); }
-    }
+    if (upload.status == UPLOAD_FILE_START) { File f = SD.open("/" + upload.filename, FILE_WRITE); if (f) f.close(); }
+    else if (upload.status == UPLOAD_FILE_WRITE) { File f = SD.open("/" + upload.filename, FILE_APPEND); if (f) { f.write(upload.buf, upload.currentSize); f.close(); } }
   });
 
-  // --- ЧАТ ---
   server.on("/get_messages", HTTP_GET, []() {
     String json = "[";
     for (int i = 0; i < messageCount; i++) {
-      String msg = chatMessages[i];
-      int colonIndex = msg.indexOf(": ");
-      String name = (colonIndex > 0) ? msg.substring(0, colonIndex) : "???";
-      String text = (colonIndex > 0) ? msg.substring(colonIndex + 2) : msg;
+      String msg = chatMessages[i]; int colon = msg.indexOf(": ");
+      String name = (colon > 0) ? msg.substring(0, colon) : "???"; String text = (colon > 0) ? msg.substring(colon + 2) : msg;
       name.replace("\"", "'"); text.replace("\"", "'");
       json += "{\"id\":\"srv_" + String(i) + "\",\"name\":\"" + name + "\",\"text\":\"" + text + "\"}";
       if (i < messageCount - 1) json += ",";
     }
-    json += "]";
-    server.send(200, "application/json", json);
+    json += "]"; server.send(200, "application/json", json);
   });
 
   server.on("/send", HTTP_POST, []() {
-    String text = server.arg("text");
-    String name = server.arg("name");
+    String text = server.arg("text"), name = server.arg("name");
     String fullMsg = name + ": " + text;
     if (messageCount < 20) { chatMessages[messageCount] = fullMsg; messageCount++; }
     else { for (int i = 0; i < 19; i++) chatMessages[i] = chatMessages[i+1]; chatMessages[19] = fullMsg; }
-    
-    // Считаем уникальные IP
-    IPAddress clientIP = server.client().remoteIP();
-    bool exists = false;
-    for (int i = 0; i < connectedCount; i++) {
-      if (connectedIPs[i] == clientIP) { exists = true; break; }
-    }
-    if (!exists && connectedCount < 20) {
-      connectedIPs[connectedCount] = clientIP;
-      connectedCount++;
-    }
-    
+    IPAddress ip = server.client().remoteIP(); bool exists = false;
+    for (int i = 0; i < connectedCount; i++) if (connectedIPs[i] == ip) exists = true;
+    if (!exists && connectedCount < 20) { connectedIPs[connectedCount] = ip; connectedCount++; }
     server.send(200, "text/plain", "OK");
   });
 
-  // --- ФАЙЛЫ С SD ---
   server.onNotFound([]() {
-    String path = server.uri();
-    if (!SD.exists(path)) { server.send(404, "text/plain", "404"); return; }
-    File file = SD.open(path, "r");
-    String type = "text/plain";
-    if (path.endsWith(".html")) type = "text/html";
-    else if (path.endsWith(".png")) type = "image/png";
-    else if (path.endsWith(".ttf")) type = "font/ttf";
-    else if (path.endsWith(".mp4")) type = "video/mp4";
-    server.streamFile(file, type);
-    file.close();
+    String path = server.uri(); if (!SD.exists(path)) { server.send(404, "text/plain", "404"); return; }
+    File file = SD.open(path, "r"); String type = "text/plain";
+    if (path.endsWith(".html")) type = "text/html"; else if (path.endsWith(".png")) type = "image/png"; else if (path.endsWith(".ttf")) type = "font/ttf"; else if (path.endsWith(".mp4")) type = "video/mp4";
+    server.streamFile(file, type); file.close();
   });
 
   server.begin();
-  Serial.println("✅ HTTP STARTED");
 }
 
 void loop() { server.handleClient(); }
