@@ -3,7 +3,7 @@
 #include <SPI.h>
 #include <SD.h>
 
-const char* ssid = "༺✧₭Øⳑ⋮ⱱⱥ₦✧༻"; // Новое имя!
+const char* ssid = "༺✧₭Øⳑ⋮ⱱⱥ₦✧༻";
 #define SD_CS 5
 WebServer server(80);
 
@@ -73,6 +73,7 @@ void setup() {
   Serial.begin(115200);
   delay(1000);
   Serial.println("\n--- DEVKIT START ---");
+  Serial.println("[BOOT] Начинаем инициализацию...");
 
   SPI.begin(18, 19, 23, 5);
 
@@ -92,12 +93,15 @@ void setup() {
   WiFi.mode(WIFI_STA);
   Serial.printf("[WiFi] Подключаюсь к %s...\n", ssid);
   WiFi.begin(ssid);
-  while (WiFi.status() != WL_CONNECTED) delay(500);
+  while (WiFi.status() != WL_CONNECTED) { delay(500); Serial.print("."); }
+  Serial.println();
   Serial.print("[WiFi] ✅ IP: "); Serial.println(WiFi.localIP());
 
   // --- API ЧАТА ---
   server.on("/get_messages", HTTP_GET, []() {
     Serial.println("[HTTP] GET /get_messages");
+    Serial.printf("[DEBUG] Текущее количество сообщений: %d\n", messageCount);
+    
     String json = "[";
     for (int i = 0; i < messageCount; i++) {
       String msg = chatMessages[i];
@@ -112,7 +116,8 @@ void setup() {
       if (i < messageCount - 1) json += ",";
     }
     json += "]";
-    Serial.println("Отправляю JSON: " + json);
+    
+    Serial.printf("[DEBUG] Отправляю JSON (%d байт): %s\n", json.length(), json.c_str());
     server.send(200, "application/json", json);
   });
 
@@ -120,9 +125,15 @@ void setup() {
     String text = server.arg("text");
     String name = server.arg("name");
     Serial.printf("[HTTP] GET /send от %s: %s\n", name.c_str(), text.c_str());
+    if (name.length() == 0 || text.length() == 0) {
+      Serial.println("[ERROR] Пустое имя или текст!");
+      server.send(400, "text/plain", "Empty name or text");
+      return;
+    }
     String fullMsg = name + ": " + text;
     if (messageCount < 20) { chatMessages[messageCount] = fullMsg; messageCount++; }
     else { for (int i = 0; i < 19; i++) chatMessages[i] = chatMessages[i+1]; chatMessages[19] = fullMsg; }
+    Serial.printf("[DEBUG] Сообщение сохранено. Всего: %d\n", messageCount);
     server.send(200, "text/plain", "OK");
   });
 
@@ -130,9 +141,15 @@ void setup() {
     String text = server.arg("text");
     String name = server.arg("name");
     Serial.printf("[HTTP] POST /send от %s: %s\n", name.c_str(), text.c_str());
+    if (name.length() == 0 || text.length() == 0) {
+      Serial.println("[ERROR] Пустое имя или текст!");
+      server.send(400, "text/plain", "Empty name or text");
+      return;
+    }
     String fullMsg = name + ": " + text;
     if (messageCount < 20) { chatMessages[messageCount] = fullMsg; messageCount++; }
     else { for (int i = 0; i < 19; i++) chatMessages[i] = chatMessages[i+1]; chatMessages[19] = fullMsg; }
+    Serial.printf("[DEBUG] Сообщение сохранено. Всего: %d\n", messageCount);
     server.send(200, "text/plain", "OK");
   });
 
