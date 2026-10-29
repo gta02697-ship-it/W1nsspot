@@ -63,18 +63,15 @@ void setup() {
   delay(1000);
   Serial.println("\n--- DEVKIT START ---");
 
-  // Инициализация SPI
-  SPI.begin(18, 19, 23, 5); // SCK, MISO, MOSI, CS
+  SPI.begin(18, 19, 23, 5);
   Serial.println("[SD] Пинаем SPI: SCK=18, MISO=19, MOSI=23, CS=5");
   
-  // Снижаем скорость до 4 МГц для стабильности
   bool sdOk = SD.begin(5, SPI, 4000000); 
   
   if (sdOk) {
     Serial.println("✅ SD OK");
   } else {
     Serial.println("❌ SD CARD NOT FOUND. Проверь пины и питание модуля!");
-    // Мы НЕ зависаем, а идем дальше
   }
 
   WiFi.mode(WIFI_STA);
@@ -118,26 +115,26 @@ void setup() {
     else { server.send(500, "text/plain", "Ошибка чтения SD"); }
   });
 
-  server.on("/files", HTTP_GET, []() { 
+  server.on("/files", HTTP_GET, [sdOk]() { 
     if (!sdOk) { server.send(500, "text/plain", "SD not initialized"); return; }
     server.send(200, "text/html", file_manager_html); 
   });
 
-  server.on("/list", HTTP_GET, []() {
+  server.on("/list", HTTP_GET, [sdOk]() {
     if (!sdOk) { server.send(500, "text/plain", "SD not initialized"); return; }
     String json = "["; File root = SD.open("/"); File file = root.openNextFile(); bool first = true;
     while (file) { if (!file.isDirectory()) { if (!first) json += ","; json += "\"" + String(file.name()) + "\""; first = false; } file = root.openNextFile(); }
     json += "]"; server.send(200, "application/json", json);
   });
 
-  server.on("/delete", HTTP_GET, []() { 
+  server.on("/delete", HTTP_GET, [sdOk]() { 
     if (!sdOk) { server.send(500, "text/plain", "SD not initialized"); return; }
     String file = server.arg("file"); if (!file.startsWith("/")) file = "/" + file; 
     if (SD.remove(file)) server.send(200, "text/plain", "OK");
     else server.send(500, "text/plain", "Error");
   });
 
-  server.on("/upload", HTTP_POST, []() { server.send(200, "text/plain", "OK"); }, []() {
+  server.on("/upload", HTTP_POST, []() { server.send(200, "text/plain", "OK"); }, [sdOk]() {
     if (!sdOk) return;
     HTTPUpload& upload = server.upload();
     if (upload.status == UPLOAD_FILE_START) { File f = SD.open("/" + upload.filename, FILE_WRITE); if (f) f.close(); }
@@ -167,7 +164,7 @@ void setup() {
     server.send(200, "text/plain", "OK");
   });
 
-  server.onNotFound([]() {
+  server.onNotFound([sdOk]() {
     if (!sdOk) { server.send(404, "text/plain", "404 (SD not init)"); return; }
     String path = server.uri(); if (!SD.exists(path)) { server.send(404, "text/plain", "404"); return; }
     File file = SD.open(path, "r"); String type = "text/plain";
