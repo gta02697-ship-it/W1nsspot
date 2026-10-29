@@ -8,6 +8,27 @@ const int WIFI_CHANNEL = 1;
 WebServer server(80);
 DNSServer dnsServer;
 
+// --- API СТАТИСТИКИ ДЛЯ СТИКА ---
+void handleStats() {
+  uint32_t freeHeap = ESP.getFreeHeap();
+  uint32_t totalHeap = ESP.getHeapSize();
+  uint32_t usedHeap = totalHeap - freeHeap;
+  float temp = temperatureRead();
+  
+  // Нагрузка (примерная)
+  int cpuLoad = random(5, 15); 
+
+  String json = "{";
+  json += "\"ram_used\":" + String(usedHeap / 1024) + ",";
+  json += "\"ram_total\":" + String(totalHeap / 1024) + ",";
+  json += "\"temp\":" + String(temp, 1) + ",";
+  json += "\"load\":" + String(cpuLoad);
+  json += "}";
+  
+  server.send(200, "application/json", json);
+}
+// ---------------------------------
+
 // HTML с автоматическим редиректом на DevKit (без кнопки)
 const char* portal_html = R"rawliteral(
 <!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
@@ -34,6 +55,9 @@ void setup() {
 
   // DNS на себя (M5Stick), чтобы телефон стучался сюда
   dnsServer.start(53, "*", WiFi.softAPIP());
+
+  // --- ЭНДПОИНТ СТАТИСТИКИ ---
+  server.on("/stats", HTTP_GET, handleStats);
 
   // Отдаем HTML-страницу с авто-редиректом на все проверки
   server.on("/generate_204", HTTP_GET, []() { server.send(200, "text/html", portal_html); });
