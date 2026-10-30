@@ -564,35 +564,6 @@ h1 { font-size:clamp(22px,3.5vw,38px);margin:8px 0;line-height:1.5;overflow-wrap
 </section>
 
 <script>
-var isAdminMode = false;
-function openAdminLogin() {
-  document.getElementById('adminPanel').style.display = 'flex';
-  document.getElementById('adminLoginBox').style.display = 'block';
-  document.getElementById('adminContentBox').style.display = 'none';
-}
-function checkAdminPass() {
-  var pass = document.getElementById('adminPass').value;
-  if (pass === '1512') {
-    isAdminMode = true;
-    document.getElementById('adminLoginBox').style.display = 'none';
-    document.getElementById('adminContentBox').style.display = 'block';
-    renderMessages();
-  } else {
-    alert('Неверный пароль!');
-  }
-}
-function closeAdmin() {
-  document.getElementById('adminPanel').style.display = 'none';
-  document.getElementById('adminPass').value = '';
-  document.getElementById('testBanMessage').style.display = 'none';
-}
-function toggleBan() {
-  var msg = document.getElementById('testBanMessage');
-  msg.style.display = 'block';
-  msg.textContent = '✅ Пользователь (w1nss) забанен (ТЕСТ). Сайт работает.';
-}
-
-// --- СТАТИСТИКА (ЗАПРАШИВАЕМ ОБЕ ПЛАТЫ) ---
 function updateStats() {
   var startTime = Date.now();
   
