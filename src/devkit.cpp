@@ -3,101 +3,115 @@
 #include <LittleFS.h>
 
 const char* ssid = "༺✧₭Øⳑ⋮ⱱⱥ₦✧༻";
+const char* password = "";
+
 WebServer server(80);
 bool globalFatal = false;
-
-// Жестко ставим ДевКит на .2
-IPAddress local_IP(192, 168, 4, 2);
-IPAddress gateway(192, 168, 4, 1); // Шлюз (Стик) на .1
-IPAddress subnet(255, 255, 255, 0);
-
-struct ChatMessage { String name; String text; };
-ChatMessage chatHistory[20];
-int chatCount = 0;
 
 void setup() {
   Serial.begin(115200);
   Serial.setDebugOutput(true);
   delay(1000);
-  Serial.println("\n=== DEVKIT START (.2) ===");
   
+  Serial.println("\n\n======================================");
+  Serial.println("=== DEVKIT START (LittleFS Server) ===");
+  Serial.println("======================================");
+  
+  Serial.println("[LittleFS] Монтирую файловую систему...");
   if (LittleFS.begin(true)) {
-    Serial.print("[LittleFS] OK! Занято: ");
+    Serial.print("[LittleFS] ✅ OK! Занято: ");
     Serial.print(LittleFS.usedBytes() / 1024);
+    Serial.print(" КБ из ");
+    Serial.print(LittleFS.totalBytes() / 1024);
     Serial.println(" КБ");
-  } else { Serial.println("[LittleFS] FAIL!"); }
+    
+    // Проверяем наличие главного файла
+    if (LittleFS.exists("/index.html")) {
+      Serial.println("[LittleFS] ✅ index.html НАЙДЕН!");
+    } else {
+      Serial.println("[LittleFS] ❌ index.html НЕ НАЙДЕН!");
+    }
+  } else {
+    Serial.println("[LittleFS] ❌ ОШИБКА МОНТИРОВАНИЯ!");
+  }
 
-  WiFi.config(local_IP, gateway, subnet);
-  WiFi.begin(ssid);
+  Serial.println("[WiFi] Подключаюсь к: " + String(ssid));
+  WiFi.begin(ssid, password);
   
-  Serial.print("[WiFi] Подключение");
-  while (WiFi.status() != WL_CONNECTED) { delay(500); Serial.print("."); }
-  Serial.println("\n[WiFi] ✅ IP: " + WiFi.localIP().toString());
+  int attempts = 0;
+  while (WiFi.status() != WL_CONNECTED && attempts < 20) {
+    delay(500);
+    Serial.print(".");
+    attempts++;
+  }
+  
+  if (WiFi.status() == WL_CONNECTED) {
+    Serial.println("\n[WiFi] ✅ УСПЕХ! Мой IP: " + WiFi.localIP().toString());
+    Serial.println("[WiFi] Шлюз (Стик): " + WiFi.gatewayIP().toString());
+  } else {
+    Serial.println("\n[WiFi] ❌ НЕ ПОДКЛЮЧИЛСЯ!");
+  }
 
-  // Обработчик всех файлов (картинки, шрифты)
+  // Ловим ВСЕ запросы
   server.onNotFound([]() {
+    String clientIP = server.client().remoteIP().toString();
     String path = server.uri();
+    Serial.println("[HTTP] >>> Запрос от " + clientIP + " на " + path);
+    
     if (path == "/") path = "/index.html";
     
-    Serial.println("[HTTP] Запрос: " + path + " от " + server.client().remoteIP().toString());
-    
     if (!LittleFS.exists(path)) { 
-        Serial.println("[HTTP] ❌ 404: " + path);
+        Serial.println("[HTTP] ❌ 404 ОШИБКА: Файл не найден " + path);
         server.send(404, "text/plain", "404 Not Found"); 
         return; 
     }
+    
     File file = LittleFS.open(path, "r");
     String type = "text/plain";
     if (path.endsWith(".html")) type = "text/html";
+    else if (path.endsWith(".css")) type = "text/css";
+    else if (path.endsWith(".js")) type = "application/javascript";
     else if (path.endsWith(".png")) type = "image/png";
     else if (path.endsWith(".mp4")) type = "video/mp4";
     else if (path.endsWith(".ttf")) type = "font/ttf";
     
-    Serial.println("[HTTP] ✅ Отдаю: " + path);
+    Serial.println("[HTTP] ✅ Отдаю файл: " + path + " (" + String(file.size()) + " байт, " + type + ")");
     server.streamFile(file, type);
     file.close();
   });
 
-  // Главная страница
   server.on("/", HTTP_GET, []() {
-    if (!LittleFS.exists("/index.html")) { server.send(404, "text/plain", "no index"); return; }
+    Serial.println("[HTTP] Запрос на главную страницу (/)");
+    if (!LittleFS.exists("/index.html")) { 
+      Serial.println("[HTTP] ❌ Нет index.html");
+      server.send(404, "text/plain", "no index"); return; 
+    }
     File file = LittleFS.open("/index.html", "r");
+    Serial.println("[HTTP] ✅ Отдаю index.html");
     server.streamFile(file, "text/html");
     file.close();
   });
 
-  // Статистика
   server.on("/stats", HTTP_GET, []() {
     String json = "{\"ram_used\":" + String((ESP.getHeapSize() - ESP.getFreeHeap()) / 1024) + ",\"ram_total\":" + String(ESP.getHeapSize() / 1024) + ",\"temp\":" + String(temperatureRead()) + ",\"load\":" + String(100 - (ESP.getFreeHeap() * 100 / ESP.getHeapSize())) + ",\"sd_status\":\"LittleFS OK\",\"users\":" + String(WiFi.softAPgetStationNum()) + "}";
     server.send(200, "application/json", json);
   });
 
-  // Чат
-  server.on("/send", HTTP_POST, []() {
-    if (server.hasArg("name") && server.hasArg("text")) {
-      if (chatCount >= 20) { for (int i = 0; i < 19; i++) chatHistory[i] = chatHistory[i+1]; chatCount = 19; }
-      chatHistory[chatCount].name = server.arg("name");
-      chatHistory[chatCount].text = server.arg("text");
-      chatCount++;
-      server.send(200, "text/plain", "OK");
-    } else { server.send(400, "text/plain", "Bad Request"); }
+  server.on("/fatal", HTTP_POST, []() { 
+    Serial.println("[ADMIN] ⚠️ ПОЛУЧЕНА КОМАНДА FATAL!");
+    globalFatal = true; 
+    server.send(200, "text/plain", "OK"); 
   });
-
-  server.on("/get_messages", HTTP_GET, []() {
-    String json = "[";
-    for (int i = 0; i < chatCount; i++) {
-      json += "{\"id\":" + String(i) + ",\"name\":\"" + chatHistory[i].name + "\",\"text\":\"" + chatHistory[i].text + "\"}";
-      if (i < chatCount - 1) json += ",";
-    }
-    json += "]";
-    server.send(200, "application/json", json);
+  
+  server.on("/get_fatal_status", HTTP_GET, []() { 
+    String json = "{\"fatal\": " + String(globalFatal ? "true" : "false") + "}"; 
+    server.send(200, "application/json", json); 
   });
-
-  // FATAL
-  server.on("/fatal", HTTP_POST, []() { globalFatal = true; server.send(200, "text/plain", "OK"); });
-  server.on("/get_fatal_status", HTTP_GET, []() { server.send(200, "application/json", "{\"fatal\": " + String(globalFatal ? "true" : "false") + "}"); });
 
   server.begin();
-  Serial.println("[HTTP] ✅ SERVER STARTED");
+  Serial.println("[HTTP] ✅ ВЕБ-СЕРВЕР ЗАПУЩЕН! ЖДУ ПОДКЛЮЧЕНИЙ...");
 }
-void loop() { server.handleClient(); }
+
+void loop() {
+  server.handleClient();
+}
