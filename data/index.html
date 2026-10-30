@@ -176,92 +176,9 @@ h1 { font-size:clamp(22px,3.5vw,38px);margin:8px 0;line-height:1.5;overflow-wrap
 
 
 
-<!-- ПУЗЫРЬ АДМИНА -->
-<div id="adminBubble" style="display:none; position:fixed; top:10px; right:10px; background:#ff9d00; color:black; padding:5px 15px; border-radius:20px; font-weight:bold; z-index:99999; box-shadow:0 0 10px #ff9d00;">👑 АДМИН</div>
 
-<!-- АДМИН ПАНЕЛЬ -->
-<div id="adminPanel" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:999999; justify-content:center; align-items:center; flex-direction:column;">
-  <div style="background:#100a05; border:2px solid #ff6a00; border-radius:12px; padding:20px; width:95%; max-width:500px; box-shadow:0 0 30px rgba(255,106,0,0.5);">
-    <h2 style="color:#ff3939; text-align:center; margin-top:0; font-family:'Courier New', monospace;">АДМИН-ПАНЕЛЬ</h2>
-    
-    <button onclick="clearChat()" style="width:100%; padding:15px; background:#ff3939; border:none; color:white; border-radius:5px; cursor:pointer; font-weight:bold; margin-bottom:10px; font-size:16px;">🗑️ ОЧИСТИТЬ ЧАТ</button>
-    <button onclick="toggleAdminBubble()" style="width:100%; padding:15px; background:#ff9d00; border:none; color:black; border-radius:5px; cursor:pointer; font-weight:bold; margin-bottom:10px; font-size:16px;">👑 ПОКАЗАТЬ ПУЗЫРЬ</button>
-    
-    <hr style="border-color:#333; margin:15px 0;">
-    <h3 style="color:#ffd05b; margin:5px 0;">ЛОГИ СЕРВЕРА:</h3>
-    <textarea id="logArea" readonly style="width:100%; height:150px; background:#000; color:#35ff9b; border:1px solid #333; padding:10px; font-family:monospace; font-size:12px; resize:none;"></textarea>
-    
-    <button onclick="refreshLogs()" style="width:100%; padding:10px; background:#333; border:1px solid #555; color:#fff; border-radius:5px; cursor:pointer; margin-top:10px;">🔄 ОБНОВИТЬ ЛОГИ</button>
-    <button onclick="closeAdmin()" style="width:100%; padding:10px; background:#222; border:none; color:#888; border-radius:5px; cursor:pointer; margin-top:10px;">ВЫЙТИ</button>
-  </div>
-</div>
 
-<script>
-  // --- ЕДИНСТВЕННЫЙ СКРИПТ АДМИНКИ ---
-  function openAdminLogin() {
-    if (localStorage.getItem('isAdmin') === 'true') {
-        document.getElementById('adminPanel').style.display = 'flex';
-        document.getElementById('adminBubble').style.display = 'block';
-        refreshLogs();
-        return;
-    }
-    var pass = prompt("Введите пароль:");
-    if (pass === "1512") {
-      localStorage.setItem('isAdmin', 'true');
-      document.getElementById('adminBubble').style.display = 'block';
-      document.getElementById('adminPanel').style.display = 'flex';
-      refreshLogs();
-    } else if (pass !== null) {
-      alert("Неверный пароль!");
-    }
-  }
-
-  function closeAdmin() {
-    document.getElementById('adminPanel').style.display = 'none';
-  }
-
-  function clearChat() {
-    if (confirm("Точно очистить чат? Все сообщения удалятся из памяти сервера.")) {
-      fetch('/clear_chat', { method: 'POST' }).then(() => {
-        alert("Чат очищен!");
-        document.querySelectorAll('.messages').forEach(el => el.innerHTML = '');
-      });
-    }
-  }
-
-  function toggleAdminBubble() {
-    var bubble = document.getElementById('adminBubble');
-    // Проверяем, включен ли уже пузырь (по стилю)
-    if (bubble.style.display === 'block') {
-      bubble.style.display = 'none';
-      alert("Пузырь скрыт");
-    } else {
-      bubble.style.display = 'block';
-      alert("Пузырь включен!");
-    }
-  }
-
-  function refreshLogs() {
-    var area = document.getElementById('logArea');
-    area.value = "Загрузка...";
-    fetch('/get_logs')
-      .then(res => res.json())
-      .then(data => {
-        area.value = data.join('\n');
-        area.scrollTop = area.scrollHeight;
-      })
-      .catch(e => area.value = "Ошибка загрузки логов: " + e);
-  }
-
-  // Проверка при загрузке страницы (чтобы статус не спадал)
-  document.addEventListener('DOMContentLoaded', () => {
-    if (localStorage.getItem('isAdmin') === 'true') {
-      document.getElementById('adminBubble').style.display = 'block';
-    }
-  });
-</script>
-
-<!-- АДМИНКА (ДОБАВЛЕНО БЕЗОПАСНО) -->
+<!-- ====== БЛОК АДМИНКИ ====== -->
 <div id="adminBubble" style="display:none; position:fixed; top:10px; right:10px; background:#ff9d00; color:black; padding:5px 15px; border-radius:20px; font-weight:bold; z-index:99999; box-shadow:0 0 10px #ff9d00;">👑 АДМИН</div>
 
 <div id="adminPanel" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:999999; justify-content:center; align-items:center; flex-direction:column;">
@@ -280,10 +197,10 @@ h1 { font-size:clamp(22px,3.5vw,38px);margin:8px 0;line-height:1.5;overflow-wrap
 <script>
   function openAdminLogin() {
     if (localStorage.getItem('isAdmin') === 'true') {
-        document.getElementById('adminPanel').style.display = 'flex';
-        document.getElementById('adminBubble').style.display = 'block';
-        refreshLogs();
-        return;
+      document.getElementById('adminPanel').style.display = 'flex';
+      document.getElementById('adminBubble').style.display = 'block';
+      refreshLogs();
+      return;
     }
     var pass = prompt("Введите пароль:");
     if (pass === "1512") {
@@ -316,8 +233,8 @@ h1 { font-size:clamp(22px,3.5vw,38px);margin:8px 0;line-height:1.5;overflow-wrap
     var area = document.getElementById('logArea');
     area.value = "Загрузка...";
     fetch('/get_logs').then(r => r.json()).then(d => {
-        area.value = d.join('\n');
-        area.scrollTop = area.scrollHeight;
+      area.value = d.join('\n');
+      area.scrollTop = area.scrollHeight;
     }).catch(e => area.value = "Ошибка: " + e);
   }
 
@@ -325,3 +242,4 @@ h1 { font-size:clamp(22px,3.5vw,38px);margin:8px 0;line-height:1.5;overflow-wrap
     if (localStorage.getItem('isAdmin') === 'true') document.getElementById('adminBubble').style.display = 'block';
   });
 </script>
+<!-- ====== КОНЕЦ БЛОКА АДМИНКИ ====== -->
