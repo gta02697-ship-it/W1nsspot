@@ -2,7 +2,7 @@ bool globalFatal = false;
 #include <WiFi.h>
 #include <WebServer.h>
 #include <SPI.h>
-#include <SD.h>
+#include <LittleFS.h>
 
 const char* ssid = "༺✧₭Øⳑ⋮ⱱⱥ₦✧༻";
 #define SD_CS 5
@@ -33,7 +33,7 @@ void setup() {
   bool sdOk = false;
   uint32_t speeds[] = {20000000, 10000000, 6000000, 4000000, 2000000, 1000000};
   for (int i = 0; i < 6; i++) {
-    if (SD.begin(5, SPI, speeds[i])) { sdOk = true; break; }
+    if (LittleFS.begin(5, SPI, speeds[i])) { sdOk = true; break; }
     SD.end(); delay(100);
   }
 
@@ -61,14 +61,14 @@ void setup() {
 
   server.on("/", []() {
     if (!SD.exists("/index.html")) { server.send(200, "text/html", "<h2 style='color:red;font-family:monospace'>ОШИБКА: index.html НЕ НАЙДЕН!</h2><a href='/files' style='color:green;'>→ ФАЙЛОВЫЙ МЕНЕДЖЕР</a>"); return; }
-    File file = SD.open("/index.html", "r");
+    File file = LittleFS.open("/index.html", "r");
     if (file) { server.streamFile(file, "text/html"); file.close(); }
   });
 
   server.on("/files", HTTP_GET, [sdOk]() { if (!sdOk) { server.send(500, "text/plain", "SD not initialized"); return; } server.send(200, "text/html", file_manager_html); });
-  server.on("/list", HTTP_GET, [sdOk]() { if (!sdOk) { server.send(500, "text/plain", "SD not initialized"); return; } String json = "["; File root = SD.open("/"); File file = root.openNextFile(); bool first = true; while (file) { if (!file.isDirectory()) { if (!first) json += ","; json += "\"" + String(file.name()) + "\""; first = false; } file = root.openNextFile(); } json += "]"; server.send(200, "application/json", json); });
+  server.on("/list", HTTP_GET, [sdOk]() { if (!sdOk) { server.send(500, "text/plain", "SD not initialized"); return; } String json = "["; File root = LittleFS.open("/"); File file = root.openNextFile(); bool first = true; while (file) { if (!file.isDirectory()) { if (!first) json += ","; json += "\"" + String(file.name()) + "\""; first = false; } file = root.openNextFile(); } json += "]"; server.send(200, "application/json", json); });
   server.on("/delete", HTTP_GET, [sdOk]() { if (!sdOk) { server.send(500, "text/plain", "SD not initialized"); return; } String file = server.arg("file"); if (!file.startsWith("/")) file = "/" + file; if (SD.remove(file)) server.send(200, "text/plain", "OK"); else server.send(500, "text/plain", "Error"); });
-  server.on("/upload", HTTP_POST, []() { server.send(200, "text/plain", "OK"); }, [sdOk]() { if (!sdOk) return; HTTPUpload& upload = server.upload(); if (upload.status == UPLOAD_FILE_START) { File f = SD.open("/" + upload.filename, FILE_WRITE); if (f) f.close(); } else if (upload.status == UPLOAD_FILE_WRITE) { File f = SD.open("/" + upload.filename, FILE_APPEND); if (f) { f.write(upload.buf, upload.currentSize); f.close(); } } });
+  server.on("/upload", HTTP_POST, []() { server.send(200, "text/plain", "OK"); }, [sdOk]() { if (!sdOk) return; HTTPUpload& upload = server.upload(); if (upload.status == UPLOAD_FILE_START) { File f = LittleFS.open("/" + upload.filename, FILE_WRITE); if (f) f.close(); } else if (upload.status == UPLOAD_FILE_WRITE) { File f = LittleFS.open("/" + upload.filename, FILE_APPEND); if (f) { f.write(upload.buf, upload.currentSize); f.close(); } } });
 
   server.on("/get_messages", HTTP_GET, []() {
     String json = "[";
@@ -105,7 +105,7 @@ void setup() {
   server.onNotFound([sdOk]() {
     if (!sdOk) { server.send(404, "text/plain", "404"); return; }
     String path = server.uri(); if (!SD.exists(path)) { server.send(404, "text/plain", "404"); return; }
-    File file = SD.open(path, "r"); String type = "text/plain";
+    File file = LittleFS.open(path, "r"); String type = "text/plain";
     if (path.endsWith(".html")) type = "text/html"; else if (path.endsWith(".png")) type = "image/png"; else if (path.endsWith(".ttf")) type = "font/ttf"; else if (path.endsWith(".mp4")) type = "video/mp4";
     server.streamFile(file, type); file.close();
   });

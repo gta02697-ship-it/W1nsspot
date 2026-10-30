@@ -2,388 +2,935 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>CONTROL PANEL // MACRODROID</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#080604">
+<title>w1nsspot // local node</title>
 <style>
-:root{
-  --bg:#080b0a;--panel:#101614;--line:#254436;--green:#75ffad;--muted:#8da99a;
-  --red:#ff6666;--amber:#ffd166;--accent:#75ffad;--accent-glow:#75ffad66;
-  --icon-shadow: rgba(0,0,0,.7);
-}
-body.lan{
-  --bg:#0a0f14;--panel:#0d1a20;--line:#1e4a5c;--green:#66e0ff;--muted:#7fa8b8;
-  --accent:#66e0ff;--accent-glow:#66e0ff66;
-}
-*{box-sizing:border-box}
+@font-face { font-family:"W1nssMinecraft"; src:url("http://192.168.4.2/Minecraftia-Regular.ttf") format("truetype"); font-weight:400; font-style:normal; font-display:swap; }
+:root { --bg:#080604; --panel:#120b06; --orange:#ff6a00; --amber:#ffd05b; --orange-light: #ff9d00; --text:#fff5e5; --muted:#c9ad91; --green:#35ff9b; --red:#ff3939; --screen-height:100vh; }
+@supports (height: 100svh) { :root { --screen-height:100svh; } }
+* { box-sizing:border-box; }
+html,body { margin:0; width:100%; height:100%; overflow:hidden; background:var(--bg); color:var(--text); font-family:"W1nssMinecraft",monospace; }
+body { min-height:var(--screen-height); background-image: linear-gradient(#ff79000b 1px,transparent 1px), linear-gradient(90deg,#ff79000b 1px,transparent 1px); background-size:22px 22px; }
+button,input,textarea,select { font:inherit; }
+button { color:inherit; }
+button:focus-visible { outline:2px solid var(--amber); outline-offset:2px; }
+.w1 { color:#ffd05b; text-shadow:0 0 8px #ff9d00; }
+.spot { color:var(--orange); text-shadow:0 0 8px #ff460055; }
+.ui-icon { display:block; width:24px; height:24px; flex:0 0 auto; overflow:visible; }
+.ui-icon path,.ui-icon rect,.ui-icon circle,.ui-icon line,.ui-icon polyline { vector-effect:non-scaling-stroke; }
+.brand-icon { width:23px;height:23px;color:var(--amber); }
+.stat-icon { width:19px;height:19px;color:var(--orange); }
+.hero-symbol { width:56px;height:56px;flex:0 0 56px; color:var(--orange);filter:drop-shadow(0 0 9px #ff790077); }
+.hero-photo { width:160px; height:110px; max-width:45%; object-fit:cover; border-radius:12px; border:1px solid var(--orange); filter:drop-shadow(0 0 9px #ff790077); margin-left:auto; }
 
-/* ── Плавная смена темы ── */
-body, header, .status, .card, button, input, .lan-bar, h1, .sub, .name, .rating,
-.status-main, .status-sub, .note, .num {
-  transition: background-color .6s ease, color .6s ease,
-              border-color .6s ease, box-shadow .6s ease,
-              filter .6s ease, opacity .6s ease;
-}
+/* --- 3D СТАТУС --- */
+.status-img-wrapper { width: 34px; height: 34px; flex: 0 0 34px; display: flex; align-items: center; justify-content: center; margin-right: 6px; perspective: 200px; }
+.status-img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; animation: flip 3s linear infinite; transform-style: preserve-3d; }
+@keyframes flip { 0% { transform: rotateY(0deg); } 100% { transform: rotateY(360deg); } }
 
-body{
-  margin:0;background:radial-gradient(ellipse at top,#12231a 0,#080b0a 55%);
-  color:#d9ffe7;font:13px/1.35 ui-monospace,SFMono-Regular,Consolas,monospace;padding:14px;
-}
-body.lan{background:radial-gradient(ellipse at top,#0d2230 0,#080b0a 55%);color:#d9f4ff}
-main{max-width:1100px;margin:auto}
-header{
-  display:flex;justify-content:space-between;align-items:center;gap:12px;
-  border:1px solid var(--line);background:#0c120f;padding:12px 15px;margin-bottom:12px;
-}
-body.lan header{background:#0a141a}
-h1{font-size:clamp(16px,2vw,23px);letter-spacing:2px;margin:0;color:var(--accent)}
-.sub{color:var(--muted);font-size:11px;margin-top:4px}
+/* --- ВЫЕЗЖАЮЩАЯ ПАНЕЛЬ --- */
+.topbar { display:grid; grid-template-columns:minmax(145px,1.2fr) repeat(4,minmax(0,.8fr)); margin:8px 2.2% 10px; border:1px solid var(--orange); border-radius:12px; background:#080604f5; overflow:hidden; box-shadow:0 0 15px #ff6a0025; position:relative; z-index:10; }
+.brand { display:flex;align-items:center;gap:9px;min-width:0; padding:10px;color:var(--amber);font-size:15px; border:0;background:transparent;text-align:left; }
+.stat { display:flex;align-items:center;gap:7px;min-width:0; padding:7px;border-left:1px solid #713707; font-size:8px;color:#ffc778; transition: background 0.2s; }
+.stat:active { background: rgba(255, 106, 0, 0.1); }
+.clickable { cursor: pointer; }
+.stat > div { min-width:0; display: flex; flex-direction: column; justify-content: center; }
+.stat strong { display:block;color:#fff5e5;font-size:9px;margin-top:2px; line-height:1.2;overflow-wrap:anywhere; }
+.dot { display:inline-block;width:8px;height:8px;flex:0 0 8px; border-radius:50%;background:var(--green); box-shadow:0 0 8px var(--green);margin-right:4px; animation:pulse 1.8s infinite; }
 
-/* ── Статус-панель ── */
-.status{
-  display:flex;align-items:center;gap:12px;color:var(--accent);white-space:nowrap;font-size:12px;
-  border:1px solid var(--line);background:linear-gradient(135deg,#0d1711,#0a100c);
-  padding:12px 15px;min-width:228px;min-height:68px;
-  box-shadow:inset 0 0 18px #75ffad08;
-}
-body.lan .status{background:linear-gradient(135deg,#0a1a22,#08131a)}
+.stats-panel { display: none; margin: -10px 2.2% 10px; padding: 15px; border: 1px solid var(--orange); border-top: none; border-radius: 0 0 12px 12px; background: #100a05; box-shadow: 0 10px 20px rgba(0,0,0,0.5); position: relative; z-index: 5; }
+.stats-panel.open { display: block; animation: slideDown 0.3s ease; }
+@keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+.stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+.stats-card { border: 1px dashed #713707; padding: 10px; border-radius: 8px; background: #0a0704; }
+.stats-card h4 { margin: 0 0 10px 0; color: var(--amber); font-size: 10px; border-bottom: 1px solid #333; padding-bottom: 5px; }
+.stats-row { display: flex; justify-content: space-between; font-size: 9px; margin-bottom: 5px; color: #ccc; }
+.stats-row span:last-child { color: var(--orange-light); font-weight: bold; }
+.close-stats { position: absolute; top: 5px; right: 10px; cursor: pointer; color: var(--red); font-size: 14px; }
+/* --------------------------------- */
 
-/* ── 3D-контейнер иконки ── */
-.icon-3d-wrap{
-  width:56px;height:56px;flex:0 0 56px;display:grid;place-items:center;
-  perspective:220px;position:relative;transform-style:preserve-3d;
-}
-.icon-3d-wrap:before{
-  content:"";position:absolute;inset:2px;border:1px solid var(--accent);opacity:.28;
-  border-top-color:var(--accent);border-right-color:transparent;border-radius:50%;
-  box-shadow:0 0 10px var(--accent-glow),inset 0 0 8px var(--accent-glow);
-  animation:orbit 6s linear infinite;
-}
-.icon-3d-wrap:after{
-  content:"";position:absolute;inset:-4px;border-radius:50%;
-  background:radial-gradient(circle,var(--accent-glow) 0%,transparent 70%);
-  pointer-events:none;transition:background .6s;
-}
-.icon-3d{
-  width:42px;height:42px;position:relative;z-index:1;
-  transform-style:preserve-3d;backface-visibility:visible;
-  animation:spin3d 4.2s linear infinite, pulseGlow 2.2s ease-in-out infinite;
-  filter:drop-shadow(1px 2px 0 rgba(0,0,0,.8)) drop-shadow(0 0 7px var(--accent-glow));
-  transition: filter .6s ease;
-}
-.icon-3d svg{width:100%;height:100%;display:block}
-
-/* Агрессивное ускорение в BUSY */
-.status.busy .icon-3d{animation:spin3d 1s linear infinite, pulseGlow .8s ease-in-out infinite}
-.status.busy .icon-3d-wrap:before{animation-duration:1.2s;border-top-color:#fff}
-.status.busy .status-main{color:#fff}
-.status.busy .status-sub{color:var(--accent)}
-
-@keyframes spin3d{
-  0%{transform:rotateY(0deg) rotateX(9deg) scaleX(1);}
-  25%{transform:rotateY(90deg) rotateX(3deg) scaleX(.72);}
-  50%{transform:rotateY(180deg) rotateX(-3deg) scaleX(1);}
-  75%{transform:rotateY(270deg) rotateX(3deg) scaleX(.72);}
-  100%{transform:rotateY(360deg) rotateX(9deg) scaleX(1);}
-}
-@keyframes pulseGlow{
-  0%,100%{filter:drop-shadow(0 0 4px var(--accent-glow))}
-  50%{filter:drop-shadow(0 0 12px var(--accent))}
-}
-@keyframes orbit{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
-@media(prefers-reduced-motion:reduce){
-  .icon-3d,.icon-3d-wrap:before{animation:none}
-}
-
-.status-copy{display:flex;flex-direction:column;gap:4px;min-width:0}
-.status-main{font-weight:800;letter-spacing:1px}
-.status-sub{font-size:9px;color:var(--muted);letter-spacing:.7px}
-.status .dot{
-  display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--accent);
-  box-shadow:0 0 8px var(--accent);animation:dotPulse 1.5s ease-in-out infinite;
-}
-@keyframes dotPulse{0%,100%{opacity:.45}50%{opacity:1}}
-
-.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
-button,input{font:inherit}
-button{cursor:pointer;border:1px solid var(--line);background:#122019;color:var(--accent);padding:9px 11px}
-button:hover{border-color:var(--accent);background:#1a3023}
-button:disabled{opacity:.55;cursor:wait}
-body.lan button{background:#0e1c22}
-body.lan button:hover{border-color:var(--accent);background:#132a33}
-
-.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
-.card{
-  border:1px solid var(--line);background:linear-gradient(145deg,#111a15,#0b100d);
-  padding:11px;min-width:0;
-}
-body.lan .card{background:linear-gradient(145deg,#0c1a20,#081116)}
-.top{display:flex;justify-content:space-between;gap:8px;align-items:flex-start;margin-bottom:9px}
-.name{font-weight:700;color:#e2ffeb;font-size:13px}
-body.lan .name{color:#e0f7ff}
-.num{color:var(--muted);font-size:10px}
-.rating{color:var(--amber);font-weight:700;white-space:nowrap}
-body.lan .rating{color:#66e0ff}
-input[type=url],input[type=text]{
-  width:100%;min-width:0;background:#070b08;color:#b8ffce;border:1px solid #294534;
-  padding:8px;margin-bottom:8px;outline:none;
-}
-body.lan input[type=url],body.lan input[type=text]{background:#061114;color:#b8f0ff;border-color:#1e4a5c}
-input:focus{border-color:var(--accent)}
-.actions{display:grid;grid-template-columns:minmax(0,1fr) 68px;gap:7px}
-.execute{width:100%;min-height:40px;font-weight:800;letter-spacing:1.3px;font-size:13px;background:#183b27;border-color:#3b8858}
-body.lan .execute{background:#0e2a33;border-color:#2a7a99}
-.save{min-height:40px}
-.note{color:var(--muted);font-size:11px;margin-top:12px;line-height:1.5}
-
-/* ── Тумблер LAN ── */
-.lan-bar{
-  border:1px dashed #385744;padding:10px;margin:10px 0;
-  display:grid;grid-template-columns:auto minmax(120px,1fr);gap:8px;align-items:center;
-}
-body.lan .lan-bar{border-color:#2a7a99;background:#0a1a2277}
-.lan-bar label{display:flex;align-items:center;gap:8px;color:var(--accent);font-weight:700;cursor:pointer}
-.lan-bar input[type=checkbox]{accent-color:var(--accent);width:16px;height:16px}
-.lan-bar input[type=text]{margin:0}
-
-@media(max-width:760px){
-  .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
-  body{padding:8px}.card{padding:9px}
-  .actions{grid-template-columns:minmax(0,1fr) 58px}
-  .execute{padding:8px 4px}
-}
-@media(max-width:390px){
-  .grid{grid-template-columns:1fr}
-  header{align-items:flex-start;flex-direction:column}
-}
+.layout { display:grid; grid-template-columns:minmax(0,1fr) minmax(220px,29%); gap:10px;margin:0 2.2%; height:calc(var(--screen-height) - 82px); min-height:0;overflow:hidden; }
+.main { display:flex;flex-direction:column;min-width:0;min-height:0;overflow:hidden; }
+.hero { flex:0 0 31%;min-height:130px;position:relative; display:flex;align-items:center;gap:14px;padding:18px; border:1px solid var(--orange);border-radius:14px; background:radial-gradient(ellipse at 76% 50%,#ff650026,transparent 43%),#100a05; overflow:hidden; }
+.hero-copy { min-width:0; flex:1; }
+.kicker { color:var(--amber);font-size:8px; }
+h1 { font-size:clamp(22px,3.5vw,38px);margin:8px 0;line-height:1.5;overflow-wrap:anywhere; }
+.hero p { margin:7px 0;color:#d8c4af;font-size:9px;line-height:1.7; }
+.hero p.accent { color:#ffad42; }
+.tiles { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); grid-template-rows: 1fr 1fr; gap:9px;margin-top:9px;flex:1; min-height:0; }
+.tile { display:flex;flex-direction:column;align-items:stretch;position:relative; min-width:0;min-height:0;height:100%;padding:11px;text-align:left; border:1px solid var(--orange);border-radius:12px; background:linear-gradient(145deg,#ff79001f,#120903f7 58%); box-shadow:0 0 14px #ff640020;cursor:pointer;overflow:hidden; transition:border-color .18s,box-shadow .18s; }
+.tile:hover { border-color:var(--amber); box-shadow:0 0 18px #ff790044; }
+.tile-top { display:flex;justify-content:space-between;align-items:center;gap:5px;min-height:46px; }
+.tile-icon { width:43px;height:43px;flex:0 0 43px; display:flex;align-items:center;justify-content:center; border:1px solid var(--orange);border-radius:9px; color:#ffd06a;background:#ff85001a;line-height:0; }
+.tile-icon .ui-icon { width:25px;height:25px; }
+.go { width:28px;height:28px;flex:0 0 28px; display:flex;align-items:center;justify-content:center; border:1px solid #522907;border-radius:7px; color:var(--orange);background:#0b0704;line-height:1; }
+.go .ui-icon { width:15px;height:15px; }
+.tile h2 { font-size:12px;color:#fff0d8;margin:10px 0 6px;line-height:1.8;overflow-wrap:anywhere; }
+.tile p { margin:0;color:#ead7c2;font-size:9px;line-height:1.8;overflow-wrap:anywhere; }
+.tile-foot { margin-top:auto;padding-top:10px;color:#ffad42;font-size:7px;line-height:2; }
+.disabled-tile { opacity: 0.4; cursor: not-allowed; pointer-events: none; filter: grayscale(0.7); }
+.disabled-tile h2 { text-decoration: line-through; color: #888; }
+.disabled-tile .tile-icon { color: #888; border-color: #555; background: #222; }
+.disabled-tile .tile-foot { color: #888; }
+.soon-text { display: block; font-size: 8px; color: var(--amber); margin-top: 4px; text-decoration: none !important; opacity: 1; }
+.chat-tile { background:radial-gradient(ellipse at 50% 0%,#ff6a0028,transparent 65%),linear-gradient(145deg,#1c1008,#0d0805); border-color:#ff8c25; }
+.chat-mini { display:grid;gap:7px;margin-top:9px; }
+.chat-mini-row { display:flex;align-items:center;gap:6px;padding:6px; border:1px solid #65320f;border-radius:7px; background:#00000035;min-width:0; }
+.mini-avatar { display:flex;align-items:center;justify-content:center; width:23px;height:23px;flex:0 0 23px;border-radius:5px; background:#2a1709;border:1px solid #9d4a0b; color:var(--amber);font-size:9px;line-height:1; }
+.mini-text { min-width:0;font-size:7px;color:#f6d9b5;line-height:1.8;overflow-wrap:anywhere; }
+.about-tile { background:radial-gradient(ellipse at 50% 0%,#ffa20028,transparent 65%),linear-gradient(145deg,#1c1208,#0d0905); border-color:#ffaa25; }
+.admin-tile { background:radial-gradient(ellipse at 50% 0%,#ff6a0028,transparent 65%),linear-gradient(145deg,#1c1008,#0d0805); border-color:#ff8c25; }
+.chat-panel { position:relative; isolation:isolate; border:1px solid var(--orange); border-radius:12px; background:#100a05; min-height:0; height:100%; display:flex; flex-direction:column; overflow:hidden; }
+.mascot-bg { position: absolute; bottom: 60px; left: 50%; transform: translateX(-50%); width: 120px; height: auto; opacity: 0.38; pointer-events: none; z-index: 0; }
+.chat-head { position:relative; z-index:1; display:flex;align-items:center;justify-content:space-between; gap:8px;padding:10px; border-bottom:1px solid #884108; background:rgba(8,6,4,0.65); }
+.chat-title { display:flex;align-items:center;gap:7px;font-size:12px; }
+.chat-title .ui-icon { width:18px;height:18px; }
+.online { display:flex;align-items:center;font-size:8px;color:var(--green); }
+.messages { position:relative; z-index:1; flex:1;min-height:0;overflow-y:auto;overflow-x:hidden; padding:9px;display:flex;flex-direction:column;gap:8px; scrollbar-width:thin;scrollbar-color:#9b4b10 #0a0705; overscroll-behavior:contain; -webkit-overflow-scrolling:touch; }
+.messages::-webkit-scrollbar { width:5px; }
+.messages::-webkit-scrollbar-thumb { background:#9b4b10;border-radius:5px; }
+.message { display:flex; align-items:flex-end; gap:6px; width:100%; animation:slideIn .25s ease both; }
+.message.no-anim { animation: none; opacity: 1; transform: none; }
+.message.theirs { justify-content:flex-start; }
+.message.mine { justify-content:flex-end; }
+.message.mine .avatar { order:2; }
+.message.mine .bubble { order:1; background:rgba(53,32,14,0.94); border-color:#a85c18; border-radius:10px 10px 2px 10px; }
+.message.theirs .bubble { background:rgba(21,16,11,0.94); border-color:#543019; border-radius:10px 10px 10px 2px; }
+.message.admin .bubble { background: #050505; border: 2px solid var(--orange-light); box-shadow: 0 0 15px rgba(255, 157, 0, 0.8), inset 0 0 10px rgba(255, 157, 0, 0.2); color: var(--orange-light); position: relative; overflow: hidden; font-family: 'Courier New', Courier, monospace; padding: 8px; }
+.message.admin .bubble::before { content: 'const hack = "admin"; if (user.isAdmin) { execute(payload); } // SYSTEM OVERRIDE >> ACCESS GRANTED 01001000 01100001 01100011 01101011 [OK] BYPASS [OK] ROOT'; white-space: pre-wrap; word-break: break-word; position: absolute; top: 0; left: 0; right: 0; bottom: 0; width: 100%; height: 100%; padding: 5px; color: rgba(53, 255, 155, 0.35); text-shadow: 0 0 5px rgba(53, 255, 155, 0.5); font-size: 8px; line-height: 1.2; pointer-events: none; z-index: 0; overflow: hidden; }
+.message.admin .bubble-head, .message.admin .bubble-text { position: relative; z-index: 1; color: var(--orange-light) !important; text-shadow: 0 0 6px rgba(255, 157, 0, 0.8); word-wrap: break-word; }
+.message.admin .bubble-head { font-weight: bold; font-size: 9px; margin-bottom: 4px; }
+.message.admin .bubble-text { font-size: 11px; font-weight: bold; line-height: 1.4; }
+.message .avatar { flex:0 0 27px; }
+.bubble { min-width:0; max-width:calc(100% - 34px); padding:8px; border:1px solid #ff79003d; border-radius:8px; background:rgba(15,10,5,0.92); }
+.avatar { width:27px;height:27px; display:flex;align-items:center;justify-content:center; border:1px solid #a94f0c;border-radius:7px; background:#291507;color:var(--amber);font-size:9px;line-height:1; }
+.bubble-head { font-size:8px;color:#ffd06a;line-height:1.8;overflow-wrap:anywhere; }
+.bubble-head time { color:#887769;font-size:7px;margin-left:4px; }
+.bubble-text { font-size:9px;line-height:1.8;color:#fff0df;margin-top:4px;overflow-wrap:anywhere;white-space:pre-wrap; }
+.scroll-controls { position:relative; z-index:1; display:flex;align-items:center;gap:6px;padding:6px 9px; border-top:1px solid #512a0d; border-bottom:1px solid #512a0d; background:rgba(8,6,4,0.75); }
+.scroll-controls span { margin-right:auto;color:#bb8d60;font-size:7px; }
+.scroll-controls button { width:28px;height:25px;display:flex;align-items:center;justify-content:center; border:1px solid #9e4b08;border-radius:5px; background:#211105;color:#ffc15a;cursor:pointer; }
+.scroll-controls .ui-icon { width:13px;height:13px; }
+.chat-compose { position:relative; z-index:1; display:flex;gap:7px;padding:8px; background:rgba(8,6,4,0.82); }
+.chat-compose input,.field input { min-width:0;flex:1;width:100%;background:#090705; border:1px solid #783b0b;border-radius:7px;padding:10px; color:var(--text);outline:none;font-size:9px; }
+.chat-compose input:focus,.field input:focus { border-color:var(--amber); }
+.chat-compose input:disabled { opacity:.55; }
+.send,.action { display:flex;align-items:center;justify-content:center;gap:6px; border:1px solid var(--amber);border-radius:7px; background:var(--orange);color:#1a0b00;padding:8px 12px; cursor:pointer;font-size:9px; }
+.send:disabled { opacity:.45;cursor:not-allowed; }
+.send .ui-icon { width:16px;height:16px; }
+.chat-login { position:relative; z-index:1; display:flex; flex-direction:column; gap:10px; margin:10px; padding:14px; border:1px solid #a95613; border-radius:10px; background:rgba(16,10,5,0.78); }
+.chat-login-title { color:var(--amber);font-size:11px;line-height:1.8; }
+.chat-login p { margin:0;color:#bba187;font-size:8px;line-height:1.8; }
+.chat-login label { color:#ffbd67;font-size:8px; }
+.chat-login input { width:100%;min-width:0;padding:11px; color:#fff5e5;background:#080604; border:1px solid #783b0b;border-radius:7px; font-size:16px;outline:none; }
+.chat-login input:focus { border-color:var(--amber); }
+.chat-login button { padding:11px;border:1px solid var(--amber);border-radius:7px; background:var(--orange);color:#1a0b00; cursor:pointer;font-size:9px; }
+.chat-login.hidden { display:none; }
+.section { display:none; height:calc(var(--screen-height) - 82px); min-height:0; margin:0 2.2%; border:1px solid var(--orange); border-radius:14px; background:#0a0705f7; overflow:hidden; }
+#section-chat { position:relative; isolation:isolate; background:#0a0705; }
+#section-chat .mascot-bg { position: absolute; bottom: 100px; width: 180px; opacity: 0.22; }
+#section-chat > * { position:relative; z-index:1; }
+.section.active { display:flex; flex-direction:column; animation:fadeIn .25s ease; }
+.section-head { display:flex;align-items:center;gap:10px;padding:12px; border-bottom:1px solid #7b3a08; background:rgba(8,6,4,0.78); flex:0 0 auto; }
+.section-head > .ui-icon { width:25px;height:25px;color:var(--amber); }
+.section-head h2 { margin:0;font-size:12px;line-height:1.8;overflow-wrap:anywhere; }
+.section-head .sub { color:var(--muted);font-size:8px;margin-top:4px;line-height:1.7; }
+.back { margin-left:auto;border:1px solid #91460a;border-radius:7px; background:#1b1008;padding:8px;cursor:pointer;color:var(--amber); white-space:nowrap;font-size:8px; }
+.section-content { padding:12px;display:grid;align-content:start;gap:10px; overflow-y:auto;overscroll-behavior:contain;min-height:0; scrollbar-width:thin;scrollbar-color:#9b4b10 #0a0705; }
+.section-content::-webkit-scrollbar { width:5px; }
+.section-content::-webkit-scrollbar-thumb { background:#9b4b10;border-radius:5px; }
+.console-box { border:1px solid #61330f;border-radius:10px;background:#0b0805;padding:12px;min-width:0; }
+.console-box h3 { margin:0 0 9px;color:var(--amber);font-size:11px;line-height:1.8; }
+.console-box p { color:#e3c9a9;font-family:Arial,sans-serif;font-size:13px;line-height:1.65;overflow-wrap:anywhere; }
+.warning { color:var(--red)!important;font-family:Arial,sans-serif!important; font-weight:bold;border:1px solid #ff393955;border-radius:7px; padding:10px;background:#ff00000c; }
+.info-yellow { color:#ffd05b!important;font-family:Arial,sans-serif!important; }
+.dev-name { color:var(--orange);font-weight:bold; }
+.field { display:flex;gap:8px;flex-wrap:wrap; }
+.grade-buttons { display:flex;gap:7px;flex-wrap:wrap; }
+#aiReply { overflow-wrap:anywhere; }
+.nerd-button { display: flex; align-items: center; gap: 12px; padding: 12px; background: linear-gradient(145deg, #1c1008, #0d0805); border: 1px solid var(--amber); border-radius: 10px; cursor: pointer; transition: all 0.25s ease; width: fit-content; box-shadow: 0 0 10px rgba(255, 106, 0, 0.1); }
+.nerd-button:hover { border-color: #fff; box-shadow: 0 0 20px rgba(255, 106, 0, 0.4); transform: translateY(-2px); }
+.nerd-button svg { width: 40px; height: 40px; color: var(--amber); filter: drop-shadow(0 4px 6px rgba(0,0,0,0.8)); }
+.nerd-text { color: var(--amber); font-size: 13px; line-height: 1.4; text-shadow: 0 2px 4px #000; }
+.nerd-sub { color: #887769; font-size: 9px; margin-top: 2px; }
+#adminPanel { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.95); z-index: 999999; display: none; justify-content: center; align-items: center; }
+.admin-box { background: #100a05; border: 2px solid var(--orange); border-radius: 12px; padding: 20px; width: 90%; max-width: 400px; box-shadow: 0 0 30px rgba(255, 106, 0, 0.5); }
+.admin-box h2 { color: var(--red); text-align: center; margin-top: 0; }
+.admin-box input { width: 100%; padding: 10px; margin-bottom: 10px; background: #080604; border: 1px solid var(--orange); color: white; border-radius: 5px; }
+.admin-box button { width: 100%; padding: 10px; background: var(--orange); border: none; color: black; border-radius: 5px; cursor: pointer; font-weight: bold; margin-bottom: 10px; }
+.ip-list { border: 1px solid #61330f; border-radius: 5px; padding: 10px; margin-bottom: 10px; }
+.ip-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+.ip-text { color: var(--amber); font-size: 10px; }
+.ban-btn { background: var(--red); color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer; }
+.unban-btn { background: var(--green); color: black; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer; }
+@keyframes pulse { 50% { opacity:.45; } }
+@keyframes slideIn { from { opacity:0;transform:translateY(5px); } to { opacity:1;transform:translateY(0); } }
+@keyframes fadeIn { from { opacity:0;transform:translateY(5px); } to { opacity:1;transform:translateY(0); } }
+@media(max-width:900px) { .topbar { grid-template-columns:1fr 1fr 1fr;margin:6px 2.5% 8px; } .brand { grid-column:1/-1;border-bottom:1px solid #713707; } .layout { grid-template-columns:minmax(0,1fr) minmax(190px,31%); gap:8px;margin:0 2.5%; height:calc(var(--screen-height) - 100px); } .section { height:calc(var(--screen-height) - 100px); margin:0 2.5%; } }
+@media(max-width:560px) { .topbar { grid-template-columns:1fr 1fr;margin:5px 2.5% 7px; } .brand { font-size:13px;padding:8px 10px; } .stat { padding:6px;font-size:7px; } .stat strong { font-size:8px; } .stat-icon { width:16px;height:16px; } .layout { display:flex;flex-direction:column;gap:0; height:calc(var(--screen-height) - 103px); margin:0 2.5%; } .main { flex:1;min-height:0; } .hero { flex:0 0 25%;min-height:105px;padding:10px;gap:8px; } .hero-symbol { width:35px;height:35px;flex-basis:35px; } .hero-photo { width:130px; height:80px; max-width:45%; margin-left:auto; } h1 { font-size:clamp(20px,7vw,30px);margin:6px 0; } .kicker { font-size:7px; } .hero p { font-size:8px;margin:5px 0; } .tiles { grid-template-columns:repeat(3,minmax(0,1fr));gap:6px; margin-top:7px;flex:1; } .tile { padding:7px 6px 9px; } .tile-top { min-height:34px; } .tile-icon { width:30px;height:30px;flex-basis:30px; } .tile-icon .ui-icon { width:20px;height:20px; } .go { width:21px;height:21px;flex-basis:21px; } .go .ui-icon { width:12px;height:12px; } .tile h2 { font-size:9px;margin:8px 0 5px;line-height:1.8; } .tile p { font-size:8px;line-height:1.7; } .tile-foot { font-size:6px;line-height:1.8; } .chat-mini { gap:5px;margin-top:7px; } .chat-mini-row { padding:4px;gap:4px; } .mini-avatar { width:18px;height:18px;flex-basis:18px;font-size:7px; } .mini-text { font-size:6px;line-height:1.7; } .chat-panel { display:none; } .section { height:calc(var(--screen-height) - 103px); margin:0 2.5%; } .section-head { padding:9px;gap:7px; } .section-head h2 { font-size:10px; } .section-head .sub { font-size:7px; } .section-head > .ui-icon { width:21px;height:21px; } .back { padding:7px;font-size:7px; } .section-content { padding:8px;gap:8px; } .console-box { padding:10px; } .console-box h3 { font-size:10px; } .console-box p { font-size:13px; } .chat-compose { padding:7px;gap:6px; } .chat-compose input { font-size:16px;padding:11px 8px; } .send { padding:8px 10px; } .chat-login { margin:8px;padding:12px; } }
+@media(prefers-reduced-motion:reduce) { *,*::before,*::after { animation:none!important;transition:none!important; } }
 </style>
 </head>
 <body>
-<main>
-<header>
-  <div>
-    <h1>CONTROL PANEL <span style="color:var(--muted)">// MACRODROID</span></h1>
-    <div class="sub" id="modeLabel">LOCAL CONSOLE · WEBHOOK TRIGGER</div>
+
+<div id="startVideoOverlay" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:#000; z-index:999999; justify-content:center; align-items:center;">
+  <video id="startVideo" playsinline muted autoplay style="width:100%; height:100%; object-fit:contain;"></video>
+</div>
+
+<div id="adminPanel">
+  <div class="admin-box" id="adminLoginBox">
+    <h2>ВХОД В АДМИНКУ</h2>
+    <input type="password" id="adminPass" placeholder="Пароль">
+    <button onclick="checkAdminPass()">ВОЙТИ</button>
+    <button onclick="closeAdmin()" style="background:#333; color:#fff;">ОТМЕНА</button>
+  </div>
+  <div class="admin-box" id="adminContentBox" style="display:none;">
+    <h2>АДМИН-ПАНЕЛЬ</h2>
+    <div class="ip-list">
+      <div class="ip-row">
+        <span class="ip-text">192.168.4.2 (w1nss)</span>
+        <button id="banBtn" class="ban-btn" onclick="toggleBan()">БАН (ТЕСТ)</button>
+      </div>
+    </div>
+    <div id="testBanMessage" style="color:var(--green); font-size:12px; text-align:center; margin-top:10px; display:none;">✅ Пользователь забанен (тест). Сайт работает.</div>
+    <button onclick="closeAdmin()" style="background:#333; color:#fff;">ВЫЙТИ</button>
+  </div>
+</div>
+
+<header class="topbar">
+  <div class="brand">
+    <svg class="ui-icon brand-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M12 2 22 12 12 22 2 12Z" stroke="currentColor" stroke-width="1.8"/>
+      <path d="M12 7 17 12 12 17 7 12Z" stroke="currentColor" stroke-width="1.5"/>
+    </svg>
+    <span><span class="w1">w1ns</span><span class="spot">spot</span></span>
+  </div>
+  
+  <!-- Кликабельный блок нагрузки -->
+  <div class="stat clickable" onclick="toggleStats()">
+    <svg class="ui-icon stat-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <rect x="4" y="3" width="16" height="18" rx="1" stroke="currentColor" stroke-width="1.7"/>
+      <path d="M8 7h8M8 11h8M8 15h3M8 18h6" stroke="currentColor" stroke-width="1.7"/>
+    </svg>
+    <div>
+      <span style="font-size:7px; display:flex; align-items:center; gap:4px;">Нагрузка <span id="arrow" style="font-size:9px; color:var(--amber)">▼</span></span>
+      <strong id="load">0%</strong>
+    </div>
   </div>
 
-  <div class="status" id="status" aria-live="polite">
-    <div class="icon-3d-wrap">
-      <!-- USB 3D -->
-      <svg class="icon-3d" id="iconUsb" viewBox="0 0 32 32" fill="none" aria-hidden="true">
-        <defs>
-          <linearGradient id="usbGrad" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stop-color="#b8ffce"/>
-            <stop offset="50%" stop-color="#75ffad"/>
-            <stop offset="100%" stop-color="#2a7a4a"/>
-          </linearGradient>
-          <filter id="usbShadow" x="-50%" y="-50%" width="200%" height="200%">
-            <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#000" flood-opacity="0.7"/>
-          </filter>
-        </defs>
-        <g filter="url(#usbShadow)">
-          <path d="M16 27V6M16 6L12.5 9.5M16 6L19.5 9.5M16 15H9V19M16 12H23V9"
-                stroke="url(#usbGrad)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          <circle cx="16" cy="27" r="2.4" stroke="url(#usbGrad)" stroke-width="2"/>
-          <rect x="6.8" y="19" width="4.4" height="4.4" rx=".5" stroke="url(#usbGrad)" stroke-width="1.8"/>
-          <path d="M21 6.5H25V10.5H21Z" stroke="url(#usbGrad)" stroke-width="1.8" stroke-linejoin="round"/>
-        </g>
-      </svg>
-      <!-- Wi-Fi 3D (скрыт по умолчанию) -->
-      <svg class="icon-3d" id="iconWifi" viewBox="0 0 32 32" fill="none" aria-hidden="true" style="display:none">
-        <defs>
-          <linearGradient id="wifiGrad" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stop-color="#b8f0ff"/>
-            <stop offset="50%" stop-color="#66e0ff"/>
-            <stop offset="100%" stop-color="#2a7a99"/>
-          </linearGradient>
-          <filter id="wifiShadow" x="-50%" y="-50%" width="200%" height="200%">
-            <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#000" flood-opacity="0.7"/>
-          </filter>
-        </defs>
-        <g filter="url(#wifiShadow)">
-          <path d="M16 24a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z" stroke="url(#wifiGrad)" stroke-width="2"/>
-          <path d="M10 18a8 8 0 0 1 12 0" stroke="url(#wifiGrad)" stroke-width="2" stroke-linecap="round"/>
-          <path d="M6 14a14 14 0 0 1 20 0" stroke="url(#wifiGrad)" stroke-width="2" stroke-linecap="round"/>
-        </g>
-      </svg>
+  <div class="stat">
+    <div class="status-img-wrapper">
+      <img src="http://192.168.4.2/mem.png" alt="status" class="status-img" onerror="this.style.display='none'">
     </div>
-    <div class="status-copy">
-      <div class="status-main"><span class="dot"></span> <span id="statusMain">SYSTEM READY</span></div>
-      <div class="status-sub" id="statusSub">USB LINK // IDLE</div>
-    </div>
+    <div>Статус<strong>Узел активен</strong></div>
+  </div>
+
+  <div class="stat">
+    <svg class="ui-icon stat-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle cx="9" cy="7" r="3" stroke="currentColor" stroke-width="1.7"/>
+      <path d="M3 20v-2a6 6 0 0 1 12 0v2M16 4a3 3 0 0 1 0 6M18 14a5 5 0 0 1 3 4v2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+    </svg>
+    <div>Пользователи<strong id="users">0/20</strong></div>
+  </div>
+
+  <div class="stat">
+    <svg class="ui-icon stat-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M3 12h4l3-7 4 14 3-7h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <div>Пинг<strong id="ping">--</strong></div>
   </div>
 </header>
 
-<div class="toolbar">
-  <button id="saveAll">SAVE ALL</button>
-  <button id="clear">CLEAR URLS</button>
+<!-- Выезжающая панель -->
+<div id="statsPanel" class="stats-panel">
+  <div class="close-stats" onclick="toggleStats()">✖</div>
+  <div class="stats-grid">
+    <!-- Стик -->
+    <div class="stats-card">
+      <h4>M5Stick (Точка доступа)</h4>
+      <div class="stats-row"><span>ОЗУ:</span> <span id="stick-ram">-- / -- КБ</span></div>
+      <div class="stats-row"><span>Flash:</span> <span id="stick-flash">-- / -- КБ</span></div>
+      <div class="stats-row"><span>Температура:</span> <span id="stick-temp">-- °C</span></div>
+      <div class="stats-row"><span>Нагрузка:</span> <span id="stick-load">-- %</span></div>
+    </div>
+    <!-- ДевКит -->
+    <div class="stats-card">
+      <h4>ESP32 DevKit (Сервер)</h4>
+      <div class="stats-row"><span>ОЗУ:</span> <span id="dev-ram">-- / -- КБ</span></div>
+      <div class="stats-row"><span>SD-Карта:</span> <span id="dev-sd">-- ГБ</span></div>
+      <div class="stats-row"><span>Температура:</span> <span id="dev-temp">-- °C</span></div>
+      <div class="stats-row"><span>Нагрузка:</span> <span id="dev-load">-- %</span></div>
+    </div>
+  </div>
 </div>
 
-<div class="lan-bar">
-  <label><input type="checkbox" id="lanMode"> OFFLINE / LAN MODE</label>
-  <input type="text" id="lanIp" placeholder="IP друга, например 192.168.1.148:8080">
-</div>
+<main id="home" class="layout">
+  <section class="main">
+    <div class="hero">
+      <svg class="ui-icon hero-symbol" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+        <path d="M24 3 45 24 24 45 3 24Z" stroke="currentColor" stroke-width="2.5"/>
+        <path d="M24 12 36 24 24 36 12 24Z" stroke="currentColor" stroke-width="2"/>
+        <path d="M24 20 28 24 24 28 20 24Z" fill="currentColor"/>
+      </svg>
+      <div class="hero-copy">
+        <div class="kicker">// LOCAL SCHOOL PORTAL</div>
+        <h1><span class="w1">w1ns</span><span class="spot">spot</span></h1>
+        <p>Колыван вернулся</p>
+        <p class="accent">и даже не бумагой...</p>
+      </div>
+      <img class="hero-photo" src="http://192.168.4.2/vasa.png" alt="w1nsspot" onerror="this.style.display='none'">
+    </div>
 
-<section class="grid" id="grid"></section>
+    <div class="tiles">
+      <button class="tile chat-tile" data-open="chat" type="button">
+        <div class="tile-top">
+          <div class="tile-icon" aria-hidden="true">
+            <svg class="ui-icon" viewBox="0 0 24 24" fill="none">
+              <path d="M4 4h16v13H11l-5 4v-4H4Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+              <path d="M8 9h8M8 13h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div class="go" aria-hidden="true">
+            <svg class="ui-icon" viewBox="0 0 24 24" fill="none"><path d="m9 5 7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="square"/></svg>
+          </div>
+        </div>
+        <h2>ЧАТ <span class="dot"></span></h2>
+        <div class="chat-mini">
+          <div class="chat-mini-row"><div class="mini-avatar">В</div><div class="mini-text">чтт ето как оно работает</div></div>
+          <div class="chat-mini-row"><div class="mini-avatar">Х</div><div class="mini-text">ахуеть, это явно чтото не школьное.</div></div>
+        </div>
+        <div class="tile-foot">СООБЩЕНИЯ<br>И ОБЩЕНИЕ</div>
+      </button>
 
-<div class="note" id="footerNote">
-  EXECUTE отправляет запрос к вебхуку в фоне и не открывает ссылку в новой вкладке. Обычные вебхуки MacroDroid требуют интернет. LAN-режим сработает только если на телефоне друга отдельно настроен локальный приёмник, понимающий эти команды.
-</div>
+      <button class="tile disabled-tile" type="button">
+        <div class="tile-top">
+          <div class="tile-icon" aria-hidden="true">
+            <svg class="ui-icon" viewBox="0 0 24 24" fill="none">
+              <path d="M3 5.5c3.8-1.6 6.8-.8 9 1.2v14c-2.2-2-5.2-2.8-9-1.2Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+              <path d="M21 5.5c-3.8-1.6-6.8-.8-9 1.2v14c2.2-2 5.2-2.8 9-1.2Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+            </svg>
+          </div>
+        </div>
+        <h2>ГДЗ</h2>
+        <span class="soon-text">СКОРО 25..</span>
+        <p>Ответы и решения школьных заданий.</p>
+        <div class="tile-foot">КЛАССЫ 6–9</div>
+      </button>
+
+      <button class="tile disabled-tile" type="button">
+        <div class="tile-top">
+          <div class="tile-icon" aria-hidden="true">
+            <svg class="ui-icon" viewBox="0 0 24 24" fill="none">
+              <rect x="6" y="6" width="12" height="12" rx="1" stroke="currentColor" stroke-width="1.8"/>
+              <path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="square"/>
+            </svg>
+          </div>
+        </div>
+        <h2>ИИ-ПОМОЩНИК</h2>
+        <span class="soon-text">СКОРО 25..</span>
+        <p>Вопросы, объяснения и подсказки.</p>
+        <div class="tile-foot">ASSISTANT // BETA</div>
+      </button>
+
+      <button class="tile about-tile" data-open="about" type="button">
+        <div class="tile-top">
+          <div class="tile-icon" aria-hidden="true">
+            <svg class="ui-icon" viewBox="0 0 24 24" fill="none">
+              <rect x="4" y="3" width="16" height="18" rx="1" stroke="currentColor" stroke-width="1.7"/>
+              <path d="M8 7h8M8 11h8M8 15h8M8 18h4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div class="go" aria-hidden="true">
+            <svg class="ui-icon" viewBox="0 0 24 24" fill="none"><path d="m9 5 7 7-7 7" stroke="currentColor" stroke-width="2"/></svg>
+          </div>
+        </div>
+        <h2>ПОДРОБНЕЕ</h2>
+        <p>Информация о проекте.</p>
+        <div class="tile-foot">О СИСТЕМЕ<br>W1NSSPOT</div>
+      </button>
+
+      <button class="tile admin-tile" onclick="openAdminLogin()" type="button">
+        <div class="tile-top">
+          <div class="tile-icon" aria-hidden="true">
+            <svg class="ui-icon" viewBox="0 0 24 24" fill="none">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="currentColor" stroke-width="1.8"/>
+              <circle cx="12" cy="11" r="2" fill="currentColor"/>
+              <path d="M12 13v4" stroke="currentColor" stroke-width="2"/>
+            </svg>
+          </div>
+          <div class="go" aria-hidden="true">
+            <svg class="ui-icon" viewBox="0 0 24 24" fill="none"><path d="m9 5 7 7-7 7" stroke="currentColor" stroke-width="2"/></svg>
+          </div>
+        </div>
+        <h2>АДМИН</h2>
+        <p>Система управления.</p>
+        <div class="tile-foot">ТОЛЬКО ДЛЯ<br>СОЗДАТЕЛЯ</div>
+      </button>
+    </div>
+  </section>
+
+  <aside class="chat-panel">
+    <div class="chat-head">
+      <div class="chat-title">
+        <svg class="ui-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M4 4h16v13H11l-5 4v-4H4Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+          <path d="M8 9h8M8 13h5" stroke="currentColor" stroke-width="1.7"/>
+        </svg>
+        ЧАТ
+      </div>
+      <div class="online"><span class="dot"></span>ДЕМО</div>
+    </div>
+
+    <img class="mascot-bg" src="http://192.168.4.2/vas.png" alt="" onerror="this.style.display='none'">
+
+    <div class="chat-login" id="homeLogin">
+      <div class="chat-login-title">ВХОД В ЧАТ</div>
+      <p>Укажи имя, которое будут видеть другие участники.</p>
+      <label for="homeUsername">ТВОЁ ИМЯ</label>
+      <input id="homeUsername" maxlength="20" autocomplete="nickname">
+      <button type="button" data-join="home">ВОЙТИ В ЧАТ</button>
+    </div>
+
+    <div class="messages" id="homeMessages" hidden></div>
+
+    <div class="scroll-controls">
+      <span>ЛЕНТА</span>
+      <button type="button" data-scroll="homeMessages" data-dir="-1" aria-label="Прокрутить вверх">
+        <svg class="ui-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m5 15 7-7 7 7" stroke="currentColor" stroke-width="2"/></svg>
+      </button>
+      <button type="button" data-scroll="homeMessages" data-dir="1" aria-label="Прокрутить вниз">
+        <svg class="ui-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m5 9 7 7 7-7" stroke="currentColor" stroke-width="2"/></svg>
+      </button>
+    </div>
+
+    <div class="chat-compose">
+      <input id="homeInput" maxlength="500" placeholder="Сначала войди в чат..." aria-label="Сообщение" disabled>
+      <button class="send" type="button" onclick="sendMessage('homeInput')" aria-label="Отправить сообщение" disabled>
+        <svg class="ui-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 11 21 3l-8 18-2-8Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="m11 13 5-5" stroke="currentColor" stroke-width="1.7"/></svg>
+      </button>
+    </div>
+  </aside>
 </main>
 
-<script>
-const macros = [
- {name:"Бз",rating:1,url:"https://trigger.macrodroid.com/4cb4dd79-27e0-4133-9899-3183105aafb7/мини-бз"},
- {name:"Бзз-бзз",rating:2,url:"https://trigger.macrodroid.com/4cb4dd79-27e0-4133-9899-3183105aafb7/Бззз"},
- {name:"Новости",rating:3,url:"https://trigger.macrodroid.com/4cb4dd79-27e0-4133-9899-3183105aafb7/новостизвук"},
- {name:"Сброс прозвона (визуал)",rating:4,url:""},
- {name:"Назад",rating:5,url:"https://trigger.macrodroid.com/4cb4dd79-27e0-4133-9899-3183105aafb7/Назад"},
- {name:"Василиса в чате",rating:6,url:"https://trigger.macrodroid.com/4cb4dd79-27e0-4133-9899-3183105aafb7/ЖОПА"},
- {name:"Тревога",rating:7,url:"https://trigger.macrodroid.com/4cb4dd79-27e0-4133-9899-3183105aafb7/БУУМТ"},
- {name:"Блок.экрана",rating:8,url:"https://trigger.macrodroid.com/4cb4dd79-27e0-4133-9899-3183105aafb7/блок"},
- {name:"Скример",rating:9,url:"https://trigger.macrodroid.com/4cb4dd79-27e0-4133-9899-3183105aafb7/СКРИМЕР"}
-];
-
-const grid = document.getElementById('grid');
-const lanCheckbox = document.getElementById('lanMode');
-const lanIpInput = document.getElementById('lanIp');
-const statusMain = document.getElementById('statusMain');
-const statusSub = document.getElementById('statusSub');
-const statusPanel = document.getElementById('status');
-const modeLabel = document.getElementById('modeLabel');
-const iconUsb = document.getElementById('iconUsb');
-const iconWifi = document.getElementById('iconWifi');
-const saveAllBtn = document.getElementById('saveAll');
-const clearBtn = document.getElementById('clear');
-
-const safeId = s => s.toLowerCase().replace(/[^a-zа-я0-9]+/gi,'-');
-const LS_PREFIX = 'macro-url-';
-const LS_LAN_PREFIX = 'macro-lan-url-';
-
-function getKey(name){ return (lanCheckbox.checked ? LS_LAN_PREFIX : LS_PREFIX) + name; }
-
-function render(){
-  grid.innerHTML = '';
-  macros.forEach((m,i)=>{
-    const id = safeId(m.name)+'-'+i;
-    const card = document.createElement('article');
-    card.className = 'card';
-    card.innerHTML = `
-      <div class="top">
-        <div>
-          <div class="num">MACRO_${String(i+1).padStart(2,'0')}</div>
-          <div class="name"></div>
-        </div>
-        <div class="rating">${m.rating}/10</div>
+<section class="section" id="section-about">
+  <div class="section-head">
+    <svg class="ui-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M12 2 22 12 12 22 2 12Z" stroke="currentColor" stroke-width="1.8"/>
+      <path d="M12 7 17 12 12 17 7 12Z" stroke="currentColor" stroke-width="1.5"/>
+    </svg>
+    <div><h2>О ПРОЕКТЕ // W1NSSPOT</h2><div class="sub">Текущий статус системы</div></div>
+    <button class="back" data-home type="button">← Назад</button>
+  </div>
+  <div class="section-content">
+    <div class="console-box">
+      <h3 style="color:var(--red)">А зачем?</h3>
+      <p class="info-yellow">Вообще изначально это было для друзей без интернета, и зайти на сайт могли только те, кто знали как. Эта сеть не была в открытом доступе.</p>
+      <p class="info-yellow">Но сейчас, когда знакомые начали узнавать о «ГДЗ без интернета» или «такой же бесплатной нейросети», все начали приставать: «Дай покажи, мне интересно». Поэтому вот теперь всё в открытом доступе.</p>
+    </div>
+    <div class="console-box">
+      <h3>Работает без интернета</h3>
+      <p class="info-yellow">Да, это правда. Портал не использует глобальную сеть. Весь контент (чат, файлы, картинки) хранится и обрабатывается локально. Вы подключены к Wi-Fi точке, но данные никуда не уходят. Это полностью автономный узел.</p>
+    </div>
+    <div class="console-box">
+      <h3>Архитектура узла</h3>
+      <p class="info-yellow">Связка из двух плат: <b>M5StickC Plus2</b> раздает Wi-Fi и делает редирект, а <b>ESP32 DevKit</b> с SD-картой отдает сайт, файлы и принимает сообщения. Все данные хранятся в оперативной памяти и на SD-карте.</p>
+    </div>
+    <div class="console-box">
+      <h3 style="color:var(--amber)">Пасхалки</h3>
+      <p class="info-yellow">А ещё тут есть пасхалки. Ищите скрытые комбинации, странные слова в чате и необычные реакции системы. Кто ищет — тот всегда найдет.</p>
+    </div>
+    <div class="console-box">
+      <h3>DEVELOPER</h3>
+      <p class="info-yellow">Проект: <span class="dev-name">w1nss</span></p>
+      <p class="info-yellow">Версия: РПП // 0.67 // ПБВЧ</p>
+    </div>
+    
+    <div class="nerd-button" onclick="openSection('nerd')">
+      <svg viewBox="0 0 64 64" fill="none">
+        <rect x="6" y="22" width="22" height="16" rx="6" stroke="currentColor" stroke-width="4" fill="rgba(255,106,0,0.1)"/>
+        <rect x="36" y="22" width="22" height="16" rx="6" stroke="currentColor" stroke-width="4" fill="rgba(255,106,0,0.1)"/>
+        <path d="M28 30h8" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+        <path d="M6 30H2M58 30h4" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+        <path d="M10 26h4M40 26h4" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+        <circle cx="17" cy="30" r="3" fill="currentColor" opacity="0.8"/>
+        <circle cx="47" cy="30" r="3" fill="currentColor" opacity="0.8"/>
+      </svg>
+      <div>
+        <div class="nerd-text">Для умных</div>
+        <div class="nerd-sub">Техническая документация</div>
       </div>
-      <input type="url" aria-label="URL" id="url-${id}" placeholder="Вставь URL">
-      <div class="actions">
-        <button class="execute" id="run-${id}">▶ EXECUTE</button>
-        <button class="save" id="save-${id}">SAVE</button>
-      </div>`;
-    card.querySelector('.name').textContent = m.name;
-    grid.appendChild(card);
+    </div>
+    
+  </div>
+</section>
 
-    const field = card.querySelector('input');
-    field.value = localStorage.getItem(getKey(m.name)) || (lanCheckbox.checked ? '' : m.url);
-    field.placeholder = lanCheckbox.checked
-      ? 'http://192.168.1.XXX:8080/путь'
-      : 'Вставь URL вебхука';
+<section class="section" id="section-nerd">
+  <div class="section-head">
+    <svg class="ui-icon" viewBox="0 0 64 64" fill="none" aria-hidden="true">
+      <rect x="6" y="22" width="22" height="16" rx="6" stroke="currentColor" stroke-width="4" fill="rgba(255,106,0,0.1)"/>
+      <rect x="36" y="22" width="22" height="16" rx="6" stroke="currentColor" stroke-width="4" fill="rgba(255,106,0,0.1)"/>
+      <path d="M28 30h8" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+      <path d="M6 30H2M58 30h4" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+      <path d="M10 26h4M40 26h4" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+      <circle cx="17" cy="30" r="3" fill="currentColor" opacity="0.8"/>
+      <circle cx="47" cy="30" r="3" fill="currentColor" opacity="0.8"/>
+    </svg>
+    <div><h2>ДЛЯ УМНЫХ // DEEP DIVE</h2><div class="sub">Техническая документация</div></div>
+    <button class="back" data-home type="button">← Назад</button>
+  </div>
+  <div class="section-content">
+    <div class="console-box">
+      <h3>АРХИТЕКТУРА УЗЛА</h3>
+      <p class="info-yellow">Узел построен на базе <b>ESP32-WROOM (M5StickC Plus2)</b>. Файловая система: <b>LittleFS</b> (смонтирована как read-only). Веб-сервер: синхронный <b>WebServer</b> (порт 80).</p>
+      <p class="info-yellow">Сетевой стек: <b>LwIP</b> (TCP/IP). Точка доступа: <b>WIFI_AP</b> (канал 1, 12 клиентов max).</p>
+    </div>
+    <div class="console-box">
+      <h3>ПРОТОКОЛ ВЗАИМОДЕЙСТВИЯ</h3>
+      <p class="info-yellow">1. Клиент отправляет <b>HTTP GET /</b> на <b>192.168.4.1:80</b>.</p>
+      <p class="info-yellow">2. Сервер читает <b>/index.html</b> из LittleFS, упаковывает в чанки (Chunked Transfer Encoding) и отправляет клиенту.</p>
+      <p class="info-yellow">3. Для API используется <b>HTTP POST</b> с телом <b>application/x-www-form-urlencoded</b>.</p>
+    </div>
+    <div class="console-box">
+      <h3>ПЛАНЫ РАСШИРЕНИЯ</h3>
+      <p class="info-yellow">1. <b>SPI-Мастер:</b> Подключение SD-карты через <b>VSPI</b> (CS=5, SCK=18, MISO=19, MOSI=23) на второй плате (DevKit).</p>
+      <p class="info-yellow">2. <b>Синхронизация времени:</b> NTP-клиент для работы расписания ИИ (если будет интернет).</p>
+      <p class="info-yellow">3. <b>Техническая пауза:</b> Чтение <b>GPIO 36</b> (кнопка) и отправка WebSocket-сигнала всем клиентам для активации видео-оверлея.</p>
+    </div>
+    <div class="console-box">
+      <h3>СИСТЕМНЫЕ КОМАНДЫ</h3>
+      <p class="info-yellow">(Для отладки через Serial)</p>
+      <p class="info-yellow"><b>AT+RST</b> — перезагрузка узла.</p>
+      <p class="info-yellow"><b>AT+FS_INFO</b> — информация о LittleFS.</p>
+      <p class="info-yellow"><b>AT+WIFI_LIST</b> — список подключенных клиентов.</p>
+    </div>
+  </div>
+</section>
 
-    card.querySelector('.save').addEventListener('click', ()=>{
-      localStorage.setItem(getKey(m.name), field.value.trim());
-      setStatus('SAVED: ' + m.name);
-    });
+<section class="section" id="section-chat">
+  <div class="section-head">
+    <svg class="ui-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M4 4h16v13H11l-5 4v-4H4Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+      <path d="M8 9h8M8 13h5" stroke="currentColor" stroke-width="1.7"/>
+    </svg>
+    <div><h2>ЧАТ // LIVE FEED</h2><div class="sub">Переписка</div></div>
+    <button class="back" data-home type="button">← Главная</button>
+  </div>
 
-    card.querySelector('.execute').addEventListener('click', async ()=>{
-      const url = field.value.trim();
-      if(!url){ setStatus('NO URL: ' + m.name); return; }
+  <img class="mascot-bg" src="http://192.168.4.2/vas.png" alt="" onerror="this.style.display='none'">
 
-      if(lanCheckbox.checked){
-        let target = url;
-        if(!/^https?:\/\//i.test(target)){
-          const ip = (lanIpInput.value.trim() || '').replace(/^https?:\/\//i,'').replace(/\/+$/,'');
-          if(!ip){ setStatus('ENTER LAN IP'); return; }
-          target = 'http://' + ip + '/' + encodeURIComponent(m.name);
-        }
-        fire(target, m.name);
-      } else {
-        if(m.rating >= 8 && !confirm('Запустить макрос «'+m.name+'» ('+m.rating+'/10)?')) return;
-        fire(url, m.name);
-      }
-    });
-  });
+  <div id="fullLogin" class="chat-login">
+    <div class="chat-login-title">ВХОД В ЧАТ</div>
+    <p>Имя будет отображаться рядом с твоими сообщениями.</p>
+    <label for="fullUsername">ТВОЁ ИМЯ</label>
+    <input id="fullUsername" maxlength="20" autocomplete="nickname">
+    <button type="button" data-join="full">ВОЙТИ В ЧАТ</button>
+  </div>
+
+  <div id="fullChat" style="display:none;flex-direction:column;flex:1;min-height:0;overflow:hidden">
+    <div class="messages" id="fullMessages"></div>
+    <div class="scroll-controls">
+      <span>ЛЕНТА</span>
+      <button type="button" data-scroll="fullMessages" data-dir="-1" aria-label="Прокрутить вверх">
+        <svg class="ui-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m5 15 7-7 7 7" stroke="currentColor" stroke-width="2"/></svg>
+      </button>
+      <button type="button" data-scroll="fullMessages" data-dir="1" aria-label="Прокрутить вниз">
+        <svg class="ui-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m5 9 7 7 7-7" stroke="currentColor" stroke-width="2"/></svg>
+      </button>
+    </div>
+    <div class="chat-compose">
+      <input id="fullInput" maxlength="500" placeholder="Введите сообщение..." aria-label="Введите сообщение" disabled>
+      <button class="send" type="button" onclick="sendMessage('fullInput')" aria-label="Отправить сообщение" disabled>
+        <svg class="ui-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 11 21 3l-8 18-2-8Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="m11 13 5-5" stroke="currentColor" stroke-width="1.7"/></svg>
+      </button>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="section-gdz">
+  <div class="section-head">
+    <svg class="ui-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M3 5.5c3.8-1.6 6.8-.8 9 1.2v14c-2.2-2-5.2-2.8-9-1.2Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+      <path d="M21 5.5c-3.8-1.6-6.8-.8-9 1.2v14c2.2-2 5.2-2.8 9-1.2Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+    </svg>
+    <div><h2>ГДЗ // БАЗА ЗНАНИЙ</h2><div class="sub">Учебные материалы · классы 6–9</div></div>
+    <button class="back" data-home type="button">← Главная</button>
+  </div>
+  <div class="section-content">
+    <div class="console-box">
+      <h3>ВЫБЕРИ КЛАСС</h3>
+      <div class="grade-buttons">
+        <button class="action" data-grade="6" type="button">6 класс</button>
+        <button class="action" data-grade="7" type="button">7 класс</button>
+        <button class="action" data-grade="8" type="button">8 класс</button>
+        <button class="action" data-grade="9" type="button">9 класс</button>
+      </div>
+      <p id="gradeHint" class="info-yellow">Выбери класс. База материалов пока не подключена.</p>
+    </div>
+    <div class="console-box">
+      <h3>ПРЕДМЕТЫ</h3>
+      <p class="info-yellow">Математика · Алгебра · Геометрия · Физика · Химия · Биология · История · Русский язык · Английский язык</p>
+      <p style="color:#ff9f3b">[ ОЖИДАНИЕ ПОДКЛЮЧЕНИЯ БАЗЫ ]</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="section-ai">
+  <div class="section-head">
+    <svg class="ui-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <rect x="6" y="6" width="12" height="12" rx="1" stroke="currentColor" stroke-width="1.8"/>
+      <path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4" stroke="currentColor" stroke-width="1.8"/>
+    </svg>
+    <div><h2>ИИ-ПОМОЩНИК</h2><div class="sub">Режим</div></div>
+    <button class="back" data-home type="button">← Главная</button>
+  </div>
+  <div class="section-content">
+    <div class="console-box">
+      <h3>LOCAL ASSISTANT</h3>
+      <p class="info-yellow">Здесь планируется помощник, который сможет объяснять задания и искать ответы в учебных материалах. Полноценная модель пока не подключена.</p>
+      <form id="aiForm" class="field">
+        <input id="aiInput" placeholder="Напиши вопрос..." maxlength="400" aria-label="Напиши вопрос">
+        <button class="action" type="submit">Отправить</button>
+      </form>
+      <p id="aiReply" aria-live="polite">&gt; СИСТЕМА ОЖИДАЕТ ЗАПРОСА...</p>
+    </div>
+  </div>
+</section>
+
+<script>
+var isAdminMode = false;
+function openAdminLogin() {
+  document.getElementById('adminPanel').style.display = 'flex';
+  document.getElementById('adminLoginBox').style.display = 'block';
+  document.getElementById('adminContentBox').style.display = 'none';
 }
-
-function setStatus(s, busy=false){
-  statusPanel.classList.toggle('busy', busy);
-  if(s.startsWith('SENDING:')){
-    statusMain.textContent = 'EXECUTING';
-    statusSub.textContent = 'LINK ACTIVE // ' + s.slice(8).toUpperCase();
-  } else if(s.startsWith('SENT:')){
-    statusMain.textContent = 'REQUEST SENT';
-    statusSub.textContent = 'WEBHOOK // ' + s.slice(5).toUpperCase();
-  } else if(s.startsWith('REQUEST SENT')){
-    statusMain.textContent = 'REQUEST DISPATCHED';
-    statusSub.textContent = 'RESPONSE NOT EXPOSED';
-  } else if(s.startsWith('SAVED:')){
-    statusMain.textContent = 'CONFIG SAVED';
-    statusSub.textContent = s.slice(6).toUpperCase();
-  } else if(s === 'ALL URLS SAVED'){
-    statusMain.textContent = 'CONFIG SAVED';
-    statusSub.textContent = 'ALL WEBHOOKS STORED';
-  } else if(s === 'URLS CLEARED'){
-    statusMain.textContent = 'FIELDS CLEARED';
-    statusSub.textContent = 'WAITING FOR INPUT';
-  } else if(s.startsWith('NO URL:')){
-    statusMain.textContent = 'URL MISSING';
-    statusSub.textContent = s.slice(7).toUpperCase();
-  } else if(s === 'ENTER LAN IP'){
-    statusMain.textContent = 'LAN TARGET REQUIRED';
-    statusSub.textContent = 'ENTER LOCAL IP:PORT';
+function checkAdminPass() {
+  var pass = document.getElementById('adminPass').value;
+  if (pass === '1512') {
+    isAdminMode = true;
+    document.getElementById('adminLoginBox').style.display = 'none';
+    document.getElementById('adminContentBox').style.display = 'block';
+    renderMessages();
   } else {
-    statusMain.textContent = s.toUpperCase();
-    statusSub.textContent = 'USB LINK // IDLE';
+    alert('Неверный пароль!');
   }
 }
+function closeAdmin() {
+  document.getElementById('adminPanel').style.display = 'none';
+  document.getElementById('adminPass').value = '';
+  document.getElementById('testBanMessage').style.display = 'none';
+}
+function toggleBan() {
+  var msg = document.getElementById('testBanMessage');
+  msg.style.display = 'block';
+  msg.textContent = '✅ Пользователь (w1nss) забанен (ТЕСТ). Сайт работает.';
+}
+window.addEventListener('load', function() {
+  var overlay = document.getElementById('startVideoOverlay');
+  var video = document.getElementById('startVideo');
+  if (overlay && video) {
+    video.src = "http://192.168.4.2/sasa.mp4"; 
+    overlay.style.display = 'flex';
+    video.play().catch(function(e) { overlay.style.display = 'none'; });
+    video.onended = function() { overlay.style.display = 'none'; video.src = ""; };
+    overlay.addEventListener('click', function() { overlay.style.display = 'none'; video.pause(); });
+  }
+});
 
-function fire(url, name){
-  setStatus('SENDING: ' + name, true);
-  fetch(url, {method:'GET', mode:'no-cors', cache:'no-store'})
-    .then(()=> setStatus('SENT: ' + name))
-    .catch(()=> setStatus('REQUEST SENT / RESPONSE UNAVAILABLE'));
+// --- СТАТИСТИКА (ЗАПРАШИВАЕМ ОБЕ ПЛАТЫ) ---
+function updateStats() {
+  var startTime = Date.now();
+  
+  // 1. Данные ДевКита (Сервер, память, пользователи)
+  fetch('http://192.168.4.2/stats')
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+      var ping = Date.now() - startTime;
+      document.getElementById('ping').textContent = ping + " ms";
+      document.getElementById('load').textContent = data.load + "%";
+      document.getElementById('users').textContent = data.users + "/20";
+
+      document.getElementById('dev-ram').textContent = data.ram_used + " / " + data.ram_total + " КБ";
+      document.getElementById('dev-sd').textContent = data.sd_free + " / " + data.sd_total + " ГБ";
+      document.getElementById('dev-temp').textContent = data.temp + " °C";
+      document.getElementById('dev-load').textContent = data.load + " %";
+    })
+    .catch(function() { console.log("ДевКит не отвечает"); });
+
+  // 2. Данные Стика (Точка доступа, память)
+  fetch('http://192.168.4.1/stats')
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+      document.getElementById('stick-ram').textContent = data.ram_used + " / " + data.ram_total + " КБ";
+      document.getElementById('stick-flash').textContent = "1.5 / 4 МБ"; // Заглушка
+      document.getElementById('stick-temp').textContent = data.temp + " °C";
+      document.getElementById('stick-load').textContent = data.load + " %";
+    })
+    .catch(function() { console.log("Стик не отвечает"); });
+}
+setInterval(updateStats, 5000);
+updateStats();
+
+var statsOpen = false;
+function toggleStats() {
+  var panel = document.getElementById('statsPanel');
+  var arrow = document.getElementById('arrow');
+  statsOpen = !statsOpen;
+  if (statsOpen) {
+    panel.classList.add('open');
+    arrow.textContent = '▲';
+    updateStats();
+  } else {
+    panel.classList.remove('open');
+    arrow.textContent = '▼';
+  }
+}
+// ---------------------------------
+
+var home = document.getElementById("home");
+var sections = Array.from(document.querySelectorAll(".section"));
+function showSection(name) {
+  home.style.display = "none";
+  sections.forEach(function(section) {
+    section.classList.toggle("active", section.id === "section-" + name);
+  });
+  if (name === "chat") renderMessages();
+}
+function openSection(name) { showSection(name); }
+function goHome() {
+  sections.forEach(function(section) { section.classList.remove("active"); });
+  home.style.display = "";
+}
+document.querySelectorAll("[data-open]").forEach(function(button) {
+  button.addEventListener("click", function() { openSection(button.dataset.open); });
+});
+document.querySelectorAll("[data-home]").forEach(function(button) {
+  button.addEventListener("click", goHome);
+});
+
+function makeTemporaryName() { return "Игрок-" + Math.random().toString(36).slice(2, 7).toUpperCase(); }
+var savedName = "";
+try { savedName = localStorage.getItem("w1nsspot-chat-name") || ""; } catch (error) {}
+if (!savedName) savedName = makeTemporaryName();
+var homeUsername = document.getElementById("homeUsername");
+var fullUsername = document.getElementById("fullUsername");
+if(homeUsername) homeUsername.value = savedName;
+if(fullUsername) fullUsername.value = savedName;
+var myChatName = "";
+var joinedChat = false;
+
+var serverMessages = []; 
+var lastRenderedIds = new Set();
+var mySentMessages = []; 
+
+function fetchMessages() {
+  fetch('/get_messages')
+    .then(function(res) { return res.text(); })
+    .then(function(text) {
+      try {
+        var arr = JSON.parse(text);
+        var parsed = arr.map(function(obj) {
+          var isMine = mySentMessages.indexOf(obj.text) !== -1;
+          return { 
+            id: obj.id, 
+            name: obj.name, 
+            text: obj.text, 
+            mine: isMine, 
+            time: '' 
+          };
+        });
+        serverMessages = parsed;
+        renderMessages(); 
+      } catch(e) { 
+        console.error("Ошибка парсинга JSON:", e);
+      }
+    })
+    .catch(function(e) { console.error("Ошибка загрузки сообщений:", e); });
 }
 
-lanCheckbox.addEventListener('change', ()=>{
-  const on = lanCheckbox.checked;
-  document.body.classList.toggle('lan', on);
-  iconUsb.style.display = on ? 'none' : 'block';
-  iconWifi.style.display = on ? 'block' : 'none';
-  modeLabel.textContent = on
-    ? 'OFFLINE MODE · LOCAL LAN TRIGGER'
-    : 'LOCAL CONSOLE · WEBHOOK TRIGGER';
-  document.getElementById('footerNote').textContent = on
-    ? 'OFFLINE MODE: укажи IP друга в формате 192.168.1.148:8080. Ссылка будет собрана как http://IP/ИмяМакроса. Работает только в одной Wi-Fi сети без VPN.'
-    : 'EXECUTE отправляет запрос к вебхуку в фоне и не открывает ссылку в новой вкладке. Обычные вебхуки MacroDroid требуют интернет. LAN-режим сработает только если на телефоне друга отдельно настроен локальный приёмник, понимающий эти команды.';
-  render();
-  setStatus(on ? 'LAN MODE ON' : 'WEBHOOK MODE ON');
-});
+function joinChat(source) {
+  var input = source === "home" ? homeUsername : fullUsername;
+  if (!input) return;
+  var name = input.value.trim();
+  if (!name) { input.focus(); return; }
+  
+  if (serverMessages.some(function(msg) { return msg.name.toLowerCase() === name.toLowerCase(); })) {
+    alert("Этот ник уже занят! Выбери другой.");
+    return;
+  }
 
-saveAllBtn.addEventListener('click', ()=>{
-  macros.forEach((m,i)=>{
-    const id = safeId(m.name)+'-'+i;
-    const field = document.getElementById('url-'+id);
-    if(field) localStorage.setItem(getKey(m.name), field.value.trim());
+  myChatName = name.slice(0, 20);
+  joinedChat = true;
+  try { localStorage.setItem("w1nsspot-chat-name", myChatName); } catch (error) {}
+  if(homeUsername) homeUsername.value = myChatName;
+  if(fullUsername) fullUsername.value = myChatName;
+  document.getElementById("homeLogin").classList.add("hidden");
+  document.getElementById("fullLogin").classList.add("hidden");
+  document.getElementById("homeMessages").hidden = false;
+  document.getElementById("fullChat").style.display = "flex";
+  document.querySelectorAll(".chat-compose input").forEach(function(input) {
+    input.disabled = false; input.placeholder = "Сообщение...";
   });
-  setStatus('ALL URLS SAVED');
+  document.querySelectorAll(".chat-compose button").forEach(function(button) { button.disabled = false; });
+  
+  fetchMessages(); 
+  
+  setInterval(function() {
+    if (joinedChat) fetchMessages();
+  }, 1500);
+
+  document.getElementById(source === "home" ? "homeInput" : "fullInput").focus();
+}
+
+document.querySelectorAll("[data-join]").forEach(function(button) {
+  button.addEventListener("click", function() { joinChat(button.dataset.join); });
+});
+if(homeUsername && fullUsername) {
+  [homeUsername, fullUsername].forEach(function(input) {
+    input.addEventListener("keydown", function(event) {
+      if (event.key === "Enter") { event.preventDefault(); joinChat(input.id === "homeUsername" ? "home" : "full"); }
+    });
+  });
+}
+
+function esc(value) {
+  return String(value).replace(/[&<>"']/g, function(char) {
+    return { "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[char];
+  });
+}
+
+function messageHTML(message) {
+  var mine = message.mine === true;
+  var author = mine ? myChatName : message.name;
+  var avatar = (author || "?").trim().charAt(0).toUpperCase() || "?";
+  var isAdmin = message.isAdmin === true;
+  return '<div class="message ' + (mine ? "mine" : "theirs") + ' ' + (isAdmin ? "admin" : "") + '" data-id="' + message.id + '"><div class="avatar">' + esc(avatar) + '</div><div class="bubble"><div class="bubble-head">' + esc(author) + ' <time>' + esc(message.time || '') + '</time></div><div class="bubble-text">' + esc(message.text) + '</div></div></div>';
+}
+
+function renderMessages() {
+  var containers = [
+    document.getElementById("homeMessages"),
+    document.getElementById("fullMessages")
+  ];
+
+  containers.forEach(function(container) {
+    if (!container) return;
+    
+    var existingTexts = [];
+    var existingMessages = container.querySelectorAll('.message');
+    for (var i = 0; i < existingMessages.length; i++) {
+      var headEl = existingMessages[i].querySelector('.bubble-head');
+      var textEl = existingMessages[i].querySelector('.bubble-text');
+      if (headEl && textEl) {
+        var name = headEl.textContent.split(' ')[0]; 
+        var text = textEl.textContent;
+        existingTexts.push(name + ':' + text);
+      }
+    }
+
+    serverMessages.forEach(function(msg) {
+      var msgKey = msg.name + ':' + msg.text;
+      if (existingTexts.indexOf(msgKey) === -1) {
+        var newMsgElement = document.createElement('div');
+        newMsgElement.innerHTML = messageHTML(msg);
+        newMsgElement = newMsgElement.firstChild;
+        
+        if (existingMessages.length > 0) {
+            newMsgElement.classList.add('no-anim');
+        }
+        
+        container.appendChild(newMsgElement);
+      }
+    });
+
+    var isScrolledToBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 60;
+    if (isScrolledToBottom) {
+      container.scrollTop = container.scrollHeight;
+    }
+  });
+}
+
+function sendMessage(inputId) {
+  if (!joinedChat) {
+    document.getElementById("fullLogin").classList.remove("hidden");
+    document.getElementById("fullUsername").focus();
+    return;
+  }
+  var input = document.getElementById(inputId);
+  if(!input) return;
+  var text = input.value.trim();
+  if (!text) { alert("Введи текст!"); return; }
+  
+  var btn = input.nextElementSibling;
+  if(btn) {
+    btn.disabled = true;
+    setTimeout(function() { btn.disabled = false; }, 1000);
+  }
+
+  var localMsg = {
+    id: 'loc_' + Date.now(),
+    name: myChatName,
+    text: text,
+    mine: true,
+    time: new Date().toLocaleTimeString("ru-RU", { hour:"2-digit", minute:"2-digit" })
+  };
+  
+  mySentMessages.push(text); 
+
+  var containers = [
+    document.getElementById("homeMessages"),
+    document.getElementById("fullMessages")
+  ];
+  containers.forEach(function(container) {
+    if (!container) return;
+    container.insertAdjacentHTML('beforeend', messageHTML(localMsg));
+    container.scrollTop = container.scrollHeight;
+  });
+
+  fetch('/send', { 
+    method: 'POST', 
+    headers: {'Content-Type': 'application/x-www-form-urlencoded'}, 
+    body: 'name=' + encodeURIComponent(myChatName) + '&text=' + encodeURIComponent(text) 
+  }).then(function() {
+    setTimeout(fetchMessages, 500); 
+  }).catch(function(e) {
+    console.log("Ошибка отправки", e);
+    alert("Ошибка отправки! Проверь сервер.");
+  });
+
+  input.value = "";
+  input.focus();
+}
+
+document.querySelectorAll(".chat-compose input").forEach(function(input) {
+  input.addEventListener("keydown", function(e) {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      sendMessage(input.id);
+    }
+  });
 });
 
-clearBtn.addEventListener('click', ()=>{
-  if(!confirm('Очистить все URL из полей?')) return;
-  macros.forEach(m => localStorage.removeItem(getKey(m.name)));
-  render();
-  setStatus('URLS CLEARED');
+document.getElementById("aiForm").addEventListener("submit", function(event) {
+  event.preventDefault();
+  var input = document.getElementById("aiInput");
+  var question = input.value.trim();
+  if (!question) return;
+  document.getElementById("aiReply").textContent = "> ИИ ПОКА НЕ ПОДКЛЮЧЁН. ТВОЙ ЗАПРОС: " + question;
+  input.value = "";
 });
-
-render();
+document.querySelectorAll("[data-grade]").forEach(function(button) {
+  button.addEventListener("click", function() {
+    document.getElementById("gradeHint").textContent = "Выбран " + button.dataset.grade + " класс. Учебные материалы появятся после подключения базы.";
+  });
+});
+document.querySelectorAll("[data-scroll]").forEach(function(button) {
+  button.addEventListener("click", function() {
+    var box = document.getElementById(button.dataset.scroll);
+    if (!box) return;
+    box.scrollTop += Number(button.dataset.dir) * Math.max(120, box.clientHeight * 0.72);
+  });
+});
 </script>
-</body></html>
+</body>
+</html>
