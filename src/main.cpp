@@ -53,6 +53,7 @@ void setup() {
   WiFi.mode(WIFI_AP);
   WiFi.setSleep(false);
   WiFi.softAP(ssid, nullptr, WIFI_CHANNEL, false, 12);
+  WiFi.softAPsetIsolation(false);
 
   // DNS на себя (M5Stick), чтобы телефон стучался сюда
   dnsServer.start(53, "*", WiFi.softAPIP());
