@@ -1,4 +1,3 @@
-// Логика админки
 function openAdminLogin() {
     if (localStorage.getItem('isAdmin') === 'true') {
         document.getElementById('adminPanel').style.display = 'flex';
@@ -12,9 +11,7 @@ function openAdminLogin() {
         document.getElementById('adminBubble').style.display = 'block';
         document.getElementById('adminPanel').style.display = 'flex';
         refreshLogs();
-    } else if (pass !== null) {
-        alert("Неверный пароль!");
-    }
+    } else if (pass !== null) { alert("Неверный пароль!"); }
 }
 function closeAdmin() { document.getElementById('adminPanel').style.display = 'none'; }
 function clearChat() {
@@ -38,9 +35,3 @@ function refreshLogs() {
         area.scrollTop = area.scrollHeight;
     }).catch(e => area.value = "Ошибка: " + e);
 }
-document.addEventListener('DOMContentLoaded', () => {
-    if (localStorage.getItem('isAdmin') === 'true') {
-        var b = document.getElementById('adminBubble');
-        if(b) b.style.display = 'block';
-    }
-});
