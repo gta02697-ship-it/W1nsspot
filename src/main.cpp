@@ -62,6 +62,16 @@ void setup() {
   lease.end_ip.addr = (192 << 24) | (168 << 16) | (4 << 8) | 254;
   tcpip_adapter_dhcps_option(TCPIP_ADAPTER_OP_SET, TCPIP_ADAPTER_DOMAIN_NAME_SERVER, &lease, sizeof(lease));
   tcpip_adapter_dhcps_start(TCPIP_ADAPTER_IF_AP);
+  IPAddress apIP(192, 168, 4, 1);
+  WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));
+  // Настройка DHCP: начинаем выдачу с .3, чтобы .2 остался для ДевКита
+  tcpip_adapter_dhcps_stop(TCPIP_ADAPTER_IF_AP);
+  dhcps_lease_t lease;
+  lease.enable = true;
+  lease.start_ip.addr = (192 << 24) | (168 << 16) | (4 << 8) | 3;
+  lease.end_ip.addr = (192 << 24) | (168 << 16) | (4 << 8) | 254;
+  tcpip_adapter_dhcps_option(TCPIP_ADAPTER_OP_SET, TCPIP_ADAPTER_DOMAIN_NAME_SERVER, &lease, sizeof(lease));
+  tcpip_adapter_dhcps_start(TCPIP_ADAPTER_IF_AP);
   WiFi.softAP(ssid, nullptr, WIFI_CHANNEL, false, 12);
 
   // DNS на себя (M5Stick), чтобы телефон стучался сюда
