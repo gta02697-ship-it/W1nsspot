@@ -175,7 +175,21 @@ h1 { font-size:clamp(22px,3.5vw,38px);margin:8px 0;line-height:1.5;overflow-wrap
 <body>
 
 
-
+<div id="oldAdminPanel">
+  <div class="admin-box" id="adminLoginBox">
+    <h2>ВХОД В АДМИНКУ</h2>
+    <input type="password" id="adminPass" placeholder="Пароль">
+    <button onclick="checkAdminPass()">ВОЙТИ</button>
+    <button onclick="closeAdmin()" style="background:#333; color:#fff;">ОТМЕНА</button>
+  </div>
+  <div class="admin-box" id="adminContentBox" style="display:none;">
+    <h2>АДМИН-ПАНЕЛЬ</h2>
+    <div class="ip-list">
+      <div class="ip-row">
+        <span class="ip-text">192.168.4.2 (w1nss)</span>
+        <button id="banBtn" class="ban-btn" onclick="toggleBan()">БАН (ТЕСТ)</button>
+      </div>
+    </div>
     <div id="testBanMessage" style="color:var(--green); font-size:12px; text-align:center; margin-top:10px; display:none;">✅ Пользователь забанен (тест). Сайт работает.</div>
     <button onclick="closeAdmin()" style="background:#333; color:#fff;">ВЫЙТИ</button>
   </div>
@@ -262,7 +276,7 @@ h1 { font-size:clamp(22px,3.5vw,38px);margin:8px 0;line-height:1.5;overflow-wrap
         <p>Колыван вернулся</p>
         <p class="accent">и даже не бумагой...</p>
       </div>
-      <img class="hero-photo" onclick="openAdminLogin()" src="http://192.168.4.2/vasa.png" onclick="openAdminLogin()" onclick="openAdminLogin()" alt="w1nsspot" onerror="this.style.display='none'">
+      <img class="hero-photo" onclick="openNewAdmin()" src="http://192.168.4.2/vasa.png" alt="w1nsspot" onerror="this.style.display='none'">
     </div>
 
     <div class="tiles">
@@ -564,6 +578,35 @@ h1 { font-size:clamp(22px,3.5vw,38px);margin:8px 0;line-height:1.5;overflow-wrap
 </section>
 
 <script>
+var isAdminMode = false;
+function oldOpenAdminLogin() {
+  document.getElementById('adminPanel').style.display = 'flex';
+  document.getElementById('adminLoginBox').style.display = 'block';
+  document.getElementById('adminContentBox').style.display = 'none';
+}
+function checkAdminPass() {
+  var pass = document.getElementById('adminPass').value;
+  if (pass === '1512') {
+    isAdminMode = true;
+    document.getElementById('adminLoginBox').style.display = 'none';
+    document.getElementById('adminContentBox').style.display = 'block';
+    renderMessages();
+  } else {
+    alert('Неверный пароль!');
+  }
+}
+function closeAdmin() {
+  document.getElementById('adminPanel').style.display = 'none';
+  document.getElementById('adminPass').value = '';
+  document.getElementById('testBanMessage').style.display = 'none';
+}
+function toggleBan() {
+  var msg = document.getElementById('testBanMessage');
+  msg.style.display = 'block';
+  msg.textContent = '✅ Пользователь (w1nss) забанен (ТЕСТ). Сайт работает.';
+}
+
+// --- СТАТИСТИКА (ЗАПРАШИВАЕМ ОБЕ ПЛАТЫ) ---
 function updateStats() {
   var startTime = Date.now();
   
@@ -859,28 +902,227 @@ document.querySelectorAll("[data-scroll]").forEach(function(button) {
 });
 </script>
 
-
-
-
-
-
 <div id="adminBubble" style="display:none; position:fixed; top:10px; right:10px; background:#ff9d00; color:black; padding:5px 15px; border-radius:20px; font-weight:bold; z-index:99999; box-shadow:0 0 10px #ff9d00;">👑 АДМИН</div>
 <div id="adminPanel" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:999999; justify-content:center; align-items:center; flex-direction:column;">
   <div style="background:#100a05; border:2px solid #ff6a00; border-radius:12px; padding:20px; width:95%; max-width:500px; box-shadow:0 0 30px rgba(255,106,0,0.5);">
     <h2 style="color:#ff3939; text-align:center; margin-top:0; font-family:monospace;">АДМИН-ПАНЕЛЬ</h2>
-    <button onclick="clearChat()" style="width:100%; padding:15px; background:#ff3939; border:none; color:white; border-radius:5px; cursor:pointer; font-weight:bold; margin-bottom:10px; font-size:16px;">🗑️ ОЧИСТИТЬ ЧАТ</button>
-    <button onclick="toggleAdminBubble()" style="width:100%; padding:15px; background:#ff9d00; border:none; color:black; border-radius:5px; cursor:pointer; font-weight:bold; margin-bottom:10px; font-size:16px;">👑 ПОКАЗАТЬ ПУЗЫРЬ</button>
+    <button onclick="newClearChat()" style="width:100%; padding:15px; background:#ff3939; border:none; color:white; border-radius:5px; cursor:pointer; font-weight:bold; margin-bottom:10px; font-size:16px;">🗑️ ОЧИСТИТЬ ЧАТ</button>
+    <button onclick="newToggleBubble()" style="width:100%; padding:15px; background:#ff9d00; border:none; color:black; border-radius:5px; cursor:pointer; font-weight:bold; margin-bottom:10px; font-size:16px;">👑 ПОКАЗАТЬ ПУЗЫРЬ</button>
     <hr style="border-color:#333; margin:15px 0;">
     <h3 style="color:#ffd05b; margin:5px 0;">ЛОГИ:</h3>
     <textarea id="logArea" readonly style="width:100%; height:150px; background:#000; color:#35ff9b; border:1px solid #333; padding:10px; font-family:monospace; font-size:12px; resize:none;"></textarea>
+    <button onclick="newRefreshLogs()" style="width:100%; padding:10px; background:#333; border:1px solid #555; color:#fff; border-radius:5px; cursor:pointer; margin-top:10px;">🔄 ОБНОВИТЬ ЛОГИ</button>
+    <button onclick="newCloseAdmin()" style="width:100%; padding:10px; background:#222; border:none; color:#888; border-radius:5px; cursor:pointer; margin-top:10px;">ВЫЙТИ</button>
+  </div>
+</div>
+<script>
+  function openNewAdmin() {
+    if (localStorage.getItem('isAdmin') === 'true') {
+      document.getElementById('adminPanel').style.display = 'flex';
+      document.getElementById('adminBubble').style.display = 'block';
+      newRefreshLogs();
+      return;
+    }
+    var pass = prompt('Введите пароль:');
+    if (pass === '1512') {
+      localStorage.setItem('isAdmin', 'true');
+      document.getElementById('adminBubble').style.display = 'block';
+      document.getElementById('adminPanel').style.display = 'flex';
+      newRefreshLogs();
+    } else if (pass !== null) { alert('Неверный пароль!'); }
+  }
+  function newCloseAdmin() { document.getElementById('adminPanel').style.display = 'none'; }
+  function newClearChat() {
+    if (confirm('Очистить чат?')) {
+      fetch('/clear_chat', { method: 'POST' }).then(() => {
+        alert('Чат очищен!');
+        document.querySelectorAll('.messages').forEach(el => el.innerHTML = '');
+      });
+    }
+  }
+  function newToggleBubble() {
+    var b = document.getElementById('adminBubble');
+    b.style.display = (b.style.display === 'block') ? 'none' : 'block';
+  }
+  function newRefreshLogs() {
+    var area = document.getElementById('logArea');
+    area.value = 'Загрузка...';
+    fetch('/get_logs').then(r => r.json()).then(d => {
+      area.value = d.join('
+');
+      area.scrollTop = area.scrollHeight;
+    }).catch(e => area.value = 'Ошибка: ' + e);
+  }
+  document.addEventListener('DOMContentLoaded', () => {
+    if (localStorage.getItem('isAdmin') === 'true') {
+      var b = document.getElementById('adminBubble');
+      if(b) b.style.display = 'block';
+    }
+  });
+</script>
+
+</body>
+</html>
+<!-- ПУЗЫРЬ АДМИНА -->
+<div id="oldAdminBubble" style="display:none; position:fixed; top:10px; right:10px; background:#ff9d00; color:black; padding:5px 15px; border-radius:20px; font-weight:bold; z-index:99999; box-shadow:0 0 10px #ff9d00;">👑 АДМИН</div>
+
+<!-- АДМИН ПАНЕЛЬ -->
+<div id="oldAdminPanel" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:999999; justify-content:center; align-items:center; flex-direction:column;">
+  <div style="background:#100a05; border:2px solid #ff6a00; border-radius:12px; padding:20px; width:95%; max-width:500px; box-shadow:0 0 30px rgba(255,106,0,0.5);">
+    <h2 style="color:#ff3939; text-align:center; margin-top:0; font-family:'Courier New', monospace;">АДМИН-ПАНЕЛЬ</h2>
+    
+    <button onclick="clearChat()" style="width:100%; padding:15px; background:#ff3939; border:none; color:white; border-radius:5px; cursor:pointer; font-weight:bold; margin-bottom:10px; font-size:16px;">🗑️ ОЧИСТИТЬ ЧАТ</button>
+    <button onclick="toggleAdminBubble()" style="width:100%; padding:15px; background:#ff9d00; border:none; color:black; border-radius:5px; cursor:pointer; font-weight:bold; margin-bottom:10px; font-size:16px;">👑 ПОКАЗАТЬ ПУЗЫРЬ</button>
+    
+    <hr style="border-color:#333; margin:15px 0;">
+    <h3 style="color:#ffd05b; margin:5px 0;">ЛОГИ СЕРВЕРА:</h3>
+    <textarea id="logArea" readonly style="width:100%; height:150px; background:#000; color:#35ff9b; border:1px solid #333; padding:10px; font-family:monospace; font-size:12px; resize:none;"></textarea>
+    
     <button onclick="refreshLogs()" style="width:100%; padding:10px; background:#333; border:1px solid #555; color:#fff; border-radius:5px; cursor:pointer; margin-top:10px;">🔄 ОБНОВИТЬ ЛОГИ</button>
     <button onclick="closeAdmin()" style="width:100%; padding:10px; background:#222; border:none; color:#888; border-radius:5px; cursor:pointer; margin-top:10px;">ВЫЙТИ</button>
   </div>
 </div>
-<script src="admin.js"></script>
 
-</body>
-</html>
+<script>
+  // Открытие админки по клику на vasa.png
+  function oldOpenAdminLogin() {
+    var pass = prompt("Введите пароль:");
+    if (pass === "1512") {
+      document.getElementById('adminPanel').style.display = 'flex';
+      if (localStorage.getItem('isAdmin') === 'true') {
+        document.getElementById('adminBubble').style.display = 'block';
+      }
+      refreshLogs();
+    } else if (pass !== null) {
+      alert("Неверный пароль!");
+    }
+  }
 
+  function closeAdmin() {
+    document.getElementById('adminPanel').style.display = 'none';
+  }
 
+  // Очистка чата
+  function oldClearChat() {
+    if (confirm("Точно очистить чат? Все сообщения удалятся из памяти сервера.")) {
+      fetch('/clear_chat', { method: 'POST' }).then(() => {
+        alert("Чат очищен!");
+        // Очищаем визуально на сайте
+        document.querySelectorAll('.messages').forEach(el => el.innerHTML = '');
+      });
+    }
+  }
 
+  // Включение пузыря
+  function oldToggleAdminBubble() {
+    var bubble = document.getElementById('adminBubble');
+    if (localStorage.getItem('isAdmin') === 'true') {
+      localStorage.removeItem('isAdmin');
+      bubble.style.display = 'none';
+      alert("Пузырь выключен");
+    } else {
+      localStorage.setItem('isAdmin', 'true');
+      bubble.style.display = 'block';
+      alert("Пузырь включен!");
+    }
+  }
+
+  // Загрузка логов
+  function oldRefreshLogs() {
+    var area = document.getElementById('logArea');
+    area.value = "Загрузка...";
+    fetch('/get_logs')
+      .then(res => res.json())
+      .then(data => {
+        area.value = data.join('\n');
+        area.scrollTop = area.scrollHeight;
+      })
+      .catch(e => area.value = "Ошибка загрузки логов: " + e);
+  }
+
+  // Проверка пузыря при загрузке страницы
+  document.addEventListener('DOMContentLoaded', () => {
+    if (localStorage.getItem('isAdmin') === 'true') {
+      document.getElementById('adminBubble').style.display = 'block';
+    }
+  });
+</script>
+
+<!-- ПУЗЫРЬ АДМИНА -->
+<div id="oldAdminBubble" style="display:none; position:fixed; top:10px; right:10px; background:#ff9d00; color:black; padding:5px 15px; border-radius:20px; font-weight:bold; z-index:99999; box-shadow:0 0 10px #ff9d00;">👑 АДМИН</div>
+
+<!-- АДМИН ПАНЕЛЬ -->
+<div id="oldAdminPanel" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:999999; justify-content:center; align-items:center; flex-direction:column;">
+  <div style="background:#100a05; border:2px solid #ff6a00; border-radius:12px; padding:20px; width:95%; max-width:500px; box-shadow:0 0 30px rgba(255,106,0,0.5);">
+    <h2 style="color:#ff3939; text-align:center; margin-top:0; font-family:'Courier New', monospace;">АДМИН-ПАНЕЛЬ</h2>
+    
+    <button onclick="clearChat()" style="width:100%; padding:15px; background:#ff3939; border:none; color:white; border-radius:5px; cursor:pointer; font-weight:bold; margin-bottom:10px; font-size:16px;">🗑️ ОЧИСТИТЬ ЧАТ</button>
+    <button onclick="toggleAdminBubble()" style="width:100%; padding:15px; background:#ff9d00; border:none; color:black; border-radius:5px; cursor:pointer; font-weight:bold; margin-bottom:10px; font-size:16px;">👑 ПОКАЗАТЬ ПУЗЫРЬ</button>
+    
+    <hr style="border-color:#333; margin:15px 0;">
+    <h3 style="color:#ffd05b; margin:5px 0;">ЛОГИ СЕРВЕРА:</h3>
+    <textarea id="logArea" readonly style="width:100%; height:150px; background:#000; color:#35ff9b; border:1px solid #333; padding:10px; font-family:monospace; font-size:12px; resize:none;"></textarea>
+    
+    <button onclick="refreshLogs()" style="width:100%; padding:10px; background:#333; border:1px solid #555; color:#fff; border-radius:5px; cursor:pointer; margin-top:10px;">🔄 ОБНОВИТЬ ЛОГИ</button>
+    <button onclick="closeAdmin()" style="width:100%; padding:10px; background:#222; border:none; color:#888; border-radius:5px; cursor:pointer; margin-top:10px;">ВЫЙТИ</button>
+  </div>
+</div>
+
+<script>
+  function oldOpenAdminLogin() {
+    var pass = prompt("Введите пароль:");
+    if (pass === "1512") {
+      document.getElementById('adminPanel').style.display = 'flex';
+      if (localStorage.getItem('isAdmin') === 'true') {
+        document.getElementById('adminBubble').style.display = 'block';
+      }
+      refreshLogs();
+    } else if (pass !== null) {
+      alert("Неверный пароль!");
+    }
+  }
+
+  function closeAdmin() {
+    document.getElementById('adminPanel').style.display = 'none';
+  }
+
+  function oldClearChat() {
+    if (confirm("Точно очистить чат? Все сообщения удалятся из памяти сервера.")) {
+      fetch('/clear_chat', { method: 'POST' }).then(() => {
+        alert("Чат очищен!");
+        document.querySelectorAll('.messages').forEach(el => el.innerHTML = '');
+      });
+    }
+  }
+
+  function oldToggleAdminBubble() {
+    var bubble = document.getElementById('adminBubble');
+    if (localStorage.getItem('isAdmin') === 'true') {
+      localStorage.removeItem('isAdmin');
+      bubble.style.display = 'none';
+      alert("Пузырь выключен");
+    } else {
+      localStorage.setItem('isAdmin', 'true');
+      bubble.style.display = 'block';
+      alert("Пузырь включен!");
+    }
+  }
+
+  function oldRefreshLogs() {
+    var area = document.getElementById('logArea');
+    area.value = "Загрузка...";
+    fetch('/get_logs')
+      .then(res => res.json())
+      .then(data => {
+        area.value = data.join('\n');
+        area.scrollTop = area.scrollHeight;
+      })
+      .catch(e => area.value = "Ошибка загрузки логов: " + e);
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    if (localStorage.getItem('isAdmin') === 'true') {
+      document.getElementById('adminBubble').style.display = 'block';
+    }
+  });
+</script>
