@@ -149,6 +149,28 @@ void setup() {
     server.send(200, "text/html", html);
   });
 
+  server.onNotFound([]() {
+    Serial.println("[HTTP] Запрос: " + server.uri() + " от " + server.client().remoteIP().toString());
+    String path = server.uri();
+    if (path == "/") path = "/index.html";
+    if (!LittleFS.exists(path)) { 
+        Serial.println("[HTTP] ❌ 404: " + path);
+        server.send(404, "text/plain", "404 Not Found"); 
+        return; 
+    }
+    File file = LittleFS.open(path, "r");
+    String type = "text/plain";
+    if (path.endsWith(".html")) type = "text/html";
+    else if (path.endsWith(".css")) type = "text/css";
+    else if (path.endsWith(".js")) type = "application/javascript";
+    else if (path.endsWith(".png")) type = "image/png";
+    else if (path.endsWith(".mp4")) type = "video/mp4";
+    else if (path.endsWith(".ttf")) type = "font/ttf";
+    server.streamFile(file, type);
+    file.close();
+    Serial.println("[HTTP] ✅ Отдан файл: " + path);
+  });
+
   server.begin();
   Serial.println("[HTTP] ✅ SERVER STARTED");
 }
