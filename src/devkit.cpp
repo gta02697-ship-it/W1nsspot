@@ -9,7 +9,7 @@ WebServer server(80);
 bool globalFatal = false;
 
 // Настройки статического IP
-IPAddress local_IP(192, 168, 4, 2);
+IPAddress local_IP(192, 168, 4, 1);
 IPAddress gateway(192, 168, 4, 1);
 IPAddress subnet(255, 255, 255, 0);
 
