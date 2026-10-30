@@ -40,9 +40,6 @@ void setup() {
   IPAddress gateway(192, 168, 4, 1);
   IPAddress subnet(255, 255, 255, 0);
   WiFi.config(local_IP, gateway, subnet);
-  IPAddress local_IP(192, 168, 4, 2);
-  IPAddress gateway(192, 168, 4, 1);
-  IPAddress subnet(255, 255, 255, 0);
   WiFi.config(local_IP, gateway, subnet);
   WiFi.begin(ssid, password);
   int attempts = 0;
