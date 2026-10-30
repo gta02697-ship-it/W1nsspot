@@ -175,21 +175,7 @@ h1 { font-size:clamp(22px,3.5vw,38px);margin:8px 0;line-height:1.5;overflow-wrap
 <body>
 
 
-<div id="adminPanel">
-  <div class="admin-box" id="adminLoginBox">
-    <h2>ВХОД В АДМИНКУ</h2>
-    <input type="password" id="adminPass" placeholder="Пароль">
-    <button onclick="checkAdminPass()">ВОЙТИ</button>
-    <button onclick="closeAdmin()" style="background:#333; color:#fff;">ОТМЕНА</button>
-  </div>
-  <div class="admin-box" id="adminContentBox" style="display:none;">
-    <h2>АДМИН-ПАНЕЛЬ</h2>
-    <div class="ip-list">
-      <div class="ip-row">
-        <span class="ip-text">192.168.4.2 (w1nss)</span>
-        <button id="banBtn" class="ban-btn" onclick="toggleBan()">БАН (ТЕСТ)</button>
-      </div>
-    </div>
+
     <div id="testBanMessage" style="color:var(--green); font-size:12px; text-align:center; margin-top:10px; display:none;">✅ Пользователь забанен (тест). Сайт работает.</div>
     <button onclick="closeAdmin()" style="background:#333; color:#fff;">ВЫЙТИ</button>
   </div>
