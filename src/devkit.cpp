@@ -36,10 +36,6 @@ void setup() {
 
   // 2. Подключение к Wi-Fi
   Serial.println("[WiFi] Подключаюсь к " + String(ssid) + "...");
-  IPAddress local_IP(192, 168, 4, 2);
-  IPAddress gateway(192, 168, 4, 1);
-  IPAddress subnet(255, 255, 255, 0);
-  WiFi.config(local_IP, gateway, subnet);
   WiFi.begin(ssid, password);
   int attempts = 0;
   while (WiFi.status() != WL_CONNECTED && attempts < 20) {
