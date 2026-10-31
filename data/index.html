@@ -931,23 +931,6 @@ function openAdminLogin() {
 <script>
   // Открытие админки по клику на vasa.png
   function openAdminLogin() {
-    var pass = prompt("Введите пароль:");
-    if (pass === "1512") {
-      document.getElementById('adminPanel').style.display = 'flex';
-      if (localStorage.getItem('isAdmin') === 'true') {
-        document.getElementById('adminBubble').style.display = 'block';
-      }
-      refreshLogs();
-    } else if (pass !== null) {
-      alert("Неверный пароль!");
-    }
-  }
-
-  function closeAdmin() {
-    document.getElementById('adminPanel').style.display = 'none';
-  }
-
-  // Очистка чата
   function clearChat() {
     if (confirm("Точно очистить чат? Все сообщения удалятся из памяти сервера.")) {
       fetch('/clear_chat', { method: 'POST' }).then(() => {
@@ -1015,24 +998,6 @@ function openAdminLogin() {
 
 <script>
   function openAdminLogin() {
-    var pass = prompt("Введите пароль:");
-    if (pass === "1512") {
-      document.getElementById('adminPanel').style.display = 'flex';
-      if (localStorage.getItem('isAdmin') === 'true') {
-        document.getElementById('adminBubble').style.display = 'block';
-      }
-      refreshLogs();
-    } else if (pass !== null) {
-      alert("Неверный пароль!");
-    }
-  }
-
-  function closeAdmin() {
-    document.getElementById('adminPanel').style.display = 'none';
-  }
-
-  function clearChat() {
-    if (confirm("Точно очистить чат? Все сообщения удалятся из памяти сервера.")) {
       fetch('/clear_chat', { method: 'POST' }).then(() => {
         alert("Чат очищен!");
         document.querySelectorAll('.messages').forEach(el => el.innerHTML = '');
