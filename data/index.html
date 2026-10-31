@@ -579,22 +579,8 @@ h1 { font-size:clamp(22px,3.5vw,38px);margin:8px 0;line-height:1.5;overflow-wrap
 
 <script>
 var isAdminMode = false;
-function openAdminLogin() {
-  document.getElementById('adminPanel').style.display = 'flex';
-  document.getElementById('adminLoginBox').style.display = 'block';
-  document.getElementById('adminContentBox').style.display = 'none';
-}
-function checkAdminPass() {
-  var pass = document.getElementById('adminPass').value;
-  if (pass === '1512') {
-    isAdminMode = true;
-    document.getElementById('adminLoginBox').style.display = 'none';
-    document.getElementById('adminContentBox').style.display = 'block';
-    renderMessages();
-  } else {
-    alert('Неверный пароль!');
-  }
-}
+
+
 function closeAdmin() {
   document.getElementById('adminPanel').style.display = 'none';
   document.getElementById('adminPass').value = '';
@@ -900,6 +886,25 @@ document.querySelectorAll("[data-scroll]").forEach(function(button) {
     box.scrollTop += Number(button.dataset.dir) * Math.max(120, box.clientHeight * 0.72);
   });
 });
+
+function openAdminLogin() {
+    if (localStorage.getItem('isAdmin') === 'true') {
+        document.getElementById('adminPanel').style.display = 'flex';
+        document.getElementById('adminBubble').style.display = 'block';
+        refreshLogs();
+        return;
+    }
+    var pass = prompt('Введите пароль:');
+    if (pass === '1512') {
+        localStorage.setItem('isAdmin', 'true');
+        document.getElementById('adminBubble').style.display = 'block';
+        document.getElementById('adminPanel').style.display = 'flex';
+        refreshLogs();
+    } else if (pass !== null) {
+        alert('Неверный пароль!');
+    }
+}
+
 </script>
 </body>
 </html>
