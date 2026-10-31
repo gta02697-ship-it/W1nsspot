@@ -571,6 +571,7 @@ function updateStats() {
     })
     .catch(function() { console.log("Стик не отвечает"); });
 }
+document.getElementById("statsPanel").classList.remove("open");
 setInterval(updateStats, 5000);
 updateStats();
 
