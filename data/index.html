@@ -922,6 +922,7 @@ document.querySelectorAll("[data-scroll]").forEach(function(button) {
     }).catch(e => area.value = 'Ошибка: ' + e);
   }
   document.addEventListener('DOMContentLoaded', () => {
+  var panel = document.getElementById("statsPanel"); if(panel) panel.classList.remove("open");
     if (localStorage.getItem('isAdmin') === 'true') document.getElementById('adminBubble').style.display = 'block';
   });
 </script>
