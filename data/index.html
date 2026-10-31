@@ -174,8 +174,63 @@ h1 { font-size:clamp(22px,3.5vw,38px);margin:8px 0;line-height:1.5;overflow-wrap
 </head>
 <body>
 
+<div id="startVideoOverlay" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:#000; z-index:999999; justify-content:center; align-items:center;">
+  <video id="startVideo" playsinline muted autoplay style="width:100%; height:100%; object-fit:contain;"></video>
+</div>
 
-  <div class="close-stats" >✖</div>
+
+    <div id="testBanMessage" style="color:var(--green); font-size:12px; text-align:center; margin-top:10px; display:none;">✅ Пользователь забанен (тест). Сайт работает.</div>
+    <button onclick="closeAdmin()" style="background:#333; color:#fff;">ВЫЙТИ</button>
+  </div>
+</div>
+
+<header class="topbar">
+  <div class="brand">
+    <svg class="ui-icon brand-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M12 2 22 12 12 22 2 12Z" stroke="currentColor" stroke-width="1.8"/>
+      <path d="M12 7 17 12 12 17 7 12Z" stroke="currentColor" stroke-width="1.5"/>
+    </svg>
+    <span><span class="w1">w1ns</span><span class="spot">spot</span></span>
+  </div>
+  
+  <!-- Кликабельный блок нагрузки -->
+  <div class="stat clickable" onclick="toggleStats()">
+    <svg class="ui-icon stat-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <rect x="4" y="3" width="16" height="18" rx="1" stroke="currentColor" stroke-width="1.7"/>
+      <path d="M8 7h8M8 11h8M8 15h3M8 18h6" stroke="currentColor" stroke-width="1.7"/>
+    </svg>
+    <div>
+      <span style="font-size:7px; display:flex; align-items:center; gap:4px;">Нагрузка <span id="arrow" style="font-size:9px; color:var(--amber)">▼</span></span>
+      <strong id="load">0%</strong>
+    </div>
+  </div>
+
+  <div class="stat">
+    <div class="status-img-wrapper">
+      <img src="http://192.168.4.2/mem.png" alt="status" class="status-img" onerror="this.style.display='none'">
+    </div>
+    <div>Статус<strong>Узел активен</strong></div>
+  </div>
+
+  <div class="stat">
+    <svg class="ui-icon stat-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle cx="9" cy="7" r="3" stroke="currentColor" stroke-width="1.7"/>
+      <path d="M3 20v-2a6 6 0 0 1 12 0v2M16 4a3 3 0 0 1 0 6M18 14a5 5 0 0 1 3 4v2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+    </svg>
+    <div>Пользователи<strong id="users">0/20</strong></div>
+  </div>
+
+  <div class="stat">
+    <svg class="ui-icon stat-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M3 12h4l3-7 4 14 3-7h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <div>Пинг<strong id="ping">--</strong></div>
+  </div>
+</header>
+
+<!-- Выезжающая панель -->
+<div id="statsPanel" class="stats-panel">
+  <div class="close-stats" onclick="toggleStats()">✖</div>
   <div class="stats-grid">
     <!-- Стик -->
     <div class="stats-card">
@@ -210,7 +265,7 @@ h1 { font-size:clamp(22px,3.5vw,38px);margin:8px 0;line-height:1.5;overflow-wrap
         <p>Колыван вернулся</p>
         <p class="accent">и даже не бумагой...</p>
       </div>
-      <img class="hero-photo"  src="http://192.168.4.2/vasa.png" onclick="openNewAdmin()" alt="w1nsspot" onerror="this.style.display='none'">
+      <img class="hero-photo" src="http://192.168.4.2/vasa.png" alt="w1nsspot" onerror="this.style.display='none'">
     </div>
 
     <div class="tiles">
@@ -281,6 +336,23 @@ h1 { font-size:clamp(22px,3.5vw,38px);margin:8px 0;line-height:1.5;overflow-wrap
         <div class="tile-foot">О СИСТЕМЕ<br>W1NSSPOT</div>
       </button>
 
+      <button class="tile admin-tile" onclick="openAdminLogin()" type="button">
+        <div class="tile-top">
+          <div class="tile-icon" aria-hidden="true">
+            <svg class="ui-icon" viewBox="0 0 24 24" fill="none">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="currentColor" stroke-width="1.8"/>
+              <circle cx="12" cy="11" r="2" fill="currentColor"/>
+              <path d="M12 13v4" stroke="currentColor" stroke-width="2"/>
+            </svg>
+          </div>
+          <div class="go" aria-hidden="true">
+            <svg class="ui-icon" viewBox="0 0 24 24" fill="none"><path d="m9 5 7 7-7 7" stroke="currentColor" stroke-width="2"/></svg>
+          </div>
+        </div>
+        <h2>АДМИН</h2>
+        <p>Система управления.</p>
+        <div class="tile-foot">ТОЛЬКО ДЛЯ<br>СОЗДАТЕЛЯ</div>
+      </button>
     </div>
   </section>
 
@@ -513,34 +585,69 @@ h1 { font-size:clamp(22px,3.5vw,38px);margin:8px 0;line-height:1.5;overflow-wrap
 
 <script>
 var isAdminMode = false;
-function old_openAdminLogin() {
-  document.getElementById('adminPanel').style.display = 'flex';
-  document.getElementById('adminLoginBox').style.display = 'block';
-  document.getElementById('adminContentBox').style.display = 'none';
-}
-function checkAdminPass() {
-  var pass = document.getElementById('adminPass').value;
-  if (pass === '1512') {
-    isAdminMode = true;
-    document.getElementById('adminLoginBox').style.display = 'none';
-    document.getElementById('adminContentBox').style.display = 'block';
-    renderMessages();
-  } else {
-    alert('Неверный пароль!');
+
+window.addEventListener('load', function() {
+  var overlay = document.getElementById('startVideoOverlay');
+  var video = document.getElementById('startVideo');
+  if (overlay && video) {
+    video.src = "http://192.168.4.2/sasa.mp4"; 
+    overlay.style.display = 'flex';
+    video.play().catch(function(e) { overlay.style.display = 'none'; });
+    video.onended = function() { overlay.style.display = 'none'; video.src = ""; };
+    overlay.addEventListener('click', function() { overlay.style.display = 'none'; video.pause(); });
   }
-}
-function old_closeAdmin() {
-  document.getElementById('adminPanel').style.display = 'none';
-  document.getElementById('adminPass').value = '';
-  document.getElementById('testBanMessage').style.display = 'none';
-}
-function toggleBan() {
-  var msg = document.getElementById('testBanMessage');
-  msg.style.display = 'block';
-  msg.textContent = '✅ Пользователь (w1nss) забанен (ТЕСТ). Сайт работает.';
-}
+});
 
 // --- СТАТИСТИКА (ЗАПРАШИВАЕМ ОБЕ ПЛАТЫ) ---
+function updateStats() {
+  var startTime = Date.now();
+  
+  // 1. Данные ДевКита (Сервер, память, пользователи)
+  fetch('http://192.168.4.2/stats')
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+      var ping = Date.now() - startTime;
+      document.getElementById('ping').textContent = ping + " ms";
+      document.getElementById('load').textContent = data.load + "%";
+      document.getElementById('users').textContent = data.users + "/20";
+
+      document.getElementById('dev-ram').textContent = data.ram_used + " / " + data.ram_total + " КБ";
+      document.getElementById('dev-sd').textContent = data.sd_free + " / " + data.sd_total + " ГБ";
+      document.getElementById('dev-temp').textContent = data.temp + " °C";
+      document.getElementById('dev-load').textContent = data.load + " %";
+    })
+    .catch(function() { console.log("ДевКит не отвечает"); });
+
+  // 2. Данные Стика (Точка доступа, память)
+  fetch('http://192.168.4.2/stats')
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+      document.getElementById('stick-ram').textContent = data.ram_used + " / " + data.ram_total + " КБ";
+      document.getElementById('stick-flash').textContent = "1.5 / 4 МБ"; // Заглушка
+      document.getElementById('stick-temp').textContent = data.temp + " °C";
+      document.getElementById('stick-load').textContent = data.load + " %";
+    })
+    .catch(function() { console.log("Стик не отвечает"); });
+}
+setInterval(updateStats, 5000);
+updateStats();
+
+var statsOpen = false;
+function toggleStats() {
+  var panel = document.getElementById('statsPanel');
+  var arrow = document.getElementById('arrow');
+  statsOpen = !statsOpen;
+  if (statsOpen) {
+    panel.classList.add('open');
+    arrow.textContent = '▲';
+    updateStats();
+  } else {
+    panel.classList.remove('open');
+    arrow.textContent = '▼';
+  }
+}
+// ---------------------------------
+
 var home = document.getElementById("home");
 var sections = Array.from(document.querySelectorAll(".section"));
 function showSection(name) {
@@ -788,98 +895,6 @@ document.querySelectorAll("[data-scroll]").forEach(function(button) {
 </script>
 
 <link rel="stylesheet" href="admin.css">
-<div id="newAdminBubble">👑 АДМИН</div>
-<div id="newAdminPanel">
-  <div class="new-admin-box">
-    <h2>АДМИН-ПАНЕЛЬ</h2>
-    <button class="new-admin-btn btn-red" onclick="newClearChat()">🗑️ ОЧИСТИТЬ ЧАТ</button>
-    <button class="new-admin-btn btn-orange" onclick="newToggleBubble()">👑 ПОКАЗАТЬ ПУЗЫРЬ</button>
-    <hr style="border-color:#333; margin:15px 0;">
-    <h3 style="color:#ffd05b; margin:5px 0;">ЛОГИ:</h3>
-    <textarea id="newLogArea" readonly></textarea>
-    <button class="new-admin-btn btn-grey" onclick="newRefreshLogs()">🔄 ОБНОВИТЬ ЛОГИ</button>
-    <button class="new-admin-btn btn-grey" onclick="newCloseAdmin()">ВЫЙТИ</button>
-  </div>
-</div>
-<script src="admin.js"></script>
-
-
-<link rel="stylesheet" href="admin.css">
-<div id="newAdminBubble" style="display:none; position:fixed; top:10px; right:10px; background:#ff9d00; color:black; padding:5px 15px; border-radius:20px; font-weight:bold; z-index:99999; box-shadow:0 0 10px #ff9d00;">👑 АДМИН</div>
-<div id="newAdminPanel" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:999999; justify-content:center; align-items:center; flex-direction:column;">
-  <div class="new-admin-box">
-    <h2>АДМИН-ПАНЕЛЬ</h2>
-    <button class="new-admin-btn btn-red" onclick="new_clearChat()">🗑️ ОЧИСТИТЬ ЧАТ</button>
-    <button class="new-admin-btn btn-orange" onclick="new_toggleBubble()">👑 ПОКАЗАТЬ ПУЗЫРЬ</button>
-    <hr style="border-color:#333; margin:15px 0;">
-    <h3 style="color:#ffd05b; margin:5px 0;">ЛОГИ:</h3>
-    <textarea id="newLogArea" readonly></textarea>
-    <button class="new-admin-btn btn-grey" onclick="new_refreshLogs()">🔄 ОБНОВИТЬ ЛОГИ</button>
-    <button class="new-admin-btn btn-grey" onclick="new_closeAdmin()">ВЫЙТИ</button>
-  </div>
-</div>
-<script src="admin.js"></script>
-
-
-<link rel="stylesheet" href="admin.css">
-<div id="adminBubble" style="display:none; position:fixed; top:10px; right:10px; background:#ff9d00; color:black; padding:5px 15px; border-radius:20px; font-weight:bold; z-index:99999; box-shadow:0 0 10px #ff9d00;">👑 АДМИН</div>
-<div id="adminPanel" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:999999; justify-content:center; align-items:center; flex-direction:column;">
-  <div class="new-admin-box">
-    <h2>АДМИН-ПАНЕЛЬ</h2>
-    <button class="new-admin-btn btn-red" onclick="clearChat()">🗑️ ОЧИСТИТЬ ЧАТ</button>
-    <button class="new-admin-btn btn-orange" onclick="toggleAdminBubble()">👑 ПОКАЗАТЬ ПУЗЫРЬ</button>
-    <hr style="border-color:#333; margin:15px 0;">
-    <h3 style="color:#ffd05b; margin:5px 0;">ЛОГИ:</h3>
-    <textarea id="logArea" readonly></textarea>
-    <button class="new-admin-btn btn-grey" onclick="refreshLogs()">🔄 ОБНОВИТЬ ЛОГИ</button>
-    <button class="new-admin-btn btn-grey" onclick="closeAdmin()">ВЫЙТИ</button>
-  </div>
-</div>
-<script>
-  function openAdminLogin() {
-    if (localStorage.getItem('isAdmin') === 'true') {
-      document.getElementById('adminPanel').style.display = 'flex';
-      document.getElementById('adminBubble').style.display = 'block';
-      refreshLogs(); return;
-    }
-    var pass = prompt('Введите пароль:');
-    if (pass === '1512') {
-      localStorage.setItem('isAdmin', 'true');
-      document.getElementById('adminBubble').style.display = 'block';
-      document.getElementById('adminPanel').style.display = 'flex';
-      refreshLogs();
-    } else if (pass !== null) { alert('Неверный пароль!'); }
-  }
-  function closeAdmin() { document.getElementById('adminPanel').style.display = 'none'; }
-  function clearChat() {
-    if (confirm('Очистить чат?')) {
-      fetch('/clear_chat', { method: 'POST' }).then(() => {
-        alert('Чат очищен!');
-        document.querySelectorAll('.messages').forEach(el => el.innerHTML = '');
-      });
-    }
-  }
-  function toggleAdminBubble() {
-    var b = document.getElementById('adminBubble');
-    b.style.display = (b.style.display === 'block') ? 'none' : 'block';
-  }
-  function refreshLogs() {
-    var area = document.getElementById('logArea');
-    area.value = 'Загрузка...';
-    fetch('/get_logs').then(r => r.json()).then(d => {
-      area.value = d.join('
-');
-      area.scrollTop = area.scrollHeight;
-    }).catch(e => area.value = 'Ошибка: ' + e);
-  }
-  document.addEventListener('DOMContentLoaded', () => {
-  var panel = document.getElementById("statsPanel"); if(panel) panel.classList.remove("open");
-    if (localStorage.getItem('isAdmin') === 'true') document.getElementById('adminBubble').style.display = 'block';
-  });
-</script>
-
-
-<link rel="stylesheet" href="admin.css">
 <div id="adminBubble" style="display:none; position:fixed; top:10px; right:10px; background:#ff9d00; color:black; padding:5px 15px; border-radius:20px; font-weight:bold; z-index:99999; box-shadow:0 0 10px #ff9d00;">👑 АДМИН</div>
 <div id="adminPanel" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:999999; justify-content:center; align-items:center; flex-direction:column;">
   <div class="new-admin-box">
@@ -934,6 +949,3 @@ document.querySelectorAll("[data-scroll]").forEach(function(button) {
 
 </body>
 </html>
-
-
-
