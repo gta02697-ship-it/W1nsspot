@@ -175,7 +175,7 @@ h1 { font-size:clamp(22px,3.5vw,38px);margin:8px 0;line-height:1.5;overflow-wrap
 <body>
 
 
-  <div class="close-stats" onclick="toggleStats()">✖</div>
+  <div class="close-stats" >✖</div>
   <div class="stats-grid">
     <!-- Стик -->
     <div class="stats-card">
@@ -541,56 +541,6 @@ function toggleBan() {
 }
 
 // --- СТАТИСТИКА (ЗАПРАШИВАЕМ ОБЕ ПЛАТЫ) ---
-function updateStats() {
-  var startTime = Date.now();
-  
-  // 1. Данные ДевКита (Сервер, память, пользователи)
-  fetch('http://192.168.4.2/stats')
-    .then(function(res) { return res.json(); })
-    .then(function(data) {
-      var ping = Date.now() - startTime;
-      document.getElementById('ping').textContent = ping + " ms";
-      document.getElementById('load').textContent = data.load + "%";
-      document.getElementById('users').textContent = data.users + "/20";
-
-      document.getElementById('dev-ram').textContent = data.ram_used + " / " + data.ram_total + " КБ";
-      document.getElementById('dev-sd').textContent = data.sd_free + " / " + data.sd_total + " ГБ";
-      document.getElementById('dev-temp').textContent = data.temp + " °C";
-      document.getElementById('dev-load').textContent = data.load + " %";
-    })
-    .catch(function() { console.log("ДевКит не отвечает"); });
-
-  // 2. Данные Стика (Точка доступа, память)
-  fetch('http://192.168.4.2/stats')
-    .then(function(res) { return res.json(); })
-    .then(function(data) {
-      document.getElementById('stick-ram').textContent = data.ram_used + " / " + data.ram_total + " КБ";
-      document.getElementById('stick-flash').textContent = "1.5 / 4 МБ"; // Заглушка
-      document.getElementById('stick-temp').textContent = data.temp + " °C";
-      document.getElementById('stick-load').textContent = data.load + " %";
-    })
-    .catch(function() { console.log("Стик не отвечает"); });
-}
-document.getElementById("statsPanel").classList.remove("open");
-setInterval(updateStats, 5000);
-updateStats();
-
-var statsOpen = false;
-function toggleStats() {
-  var panel = document.getElementById('statsPanel');
-  var arrow = document.getElementById('arrow');
-  statsOpen = !statsOpen;
-  if (statsOpen) {
-    panel.classList.add('open');
-    arrow.textContent = '▲';
-    updateStats();
-  } else {
-    panel.classList.remove('open');
-    arrow.textContent = '▼';
-  }
-}
-// ---------------------------------
-
 var home = document.getElementById("home");
 var sections = Array.from(document.querySelectorAll(".section"));
 function showSection(name) {
