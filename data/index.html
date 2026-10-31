@@ -175,7 +175,7 @@ h1 { font-size:clamp(22px,3.5vw,38px);margin:8px 0;line-height:1.5;overflow-wrap
 <body>
 
 
-<div id="adminPanel">
+<div id="old_adminPanel">
   <div class="admin-box" id="adminLoginBox">
     <h2>ВХОД В АДМИНКУ</h2>
     <input type="password" id="adminPass" placeholder="Пароль">
@@ -579,7 +579,7 @@ h1 { font-size:clamp(22px,3.5vw,38px);margin:8px 0;line-height:1.5;overflow-wrap
 
 <script>
 var isAdminMode = false;
-function openAdminLogin() {
+function old_openAdminLogin() {
   document.getElementById('adminPanel').style.display = 'flex';
   document.getElementById('adminLoginBox').style.display = 'block';
   document.getElementById('adminContentBox').style.display = 'none';
@@ -595,7 +595,7 @@ function checkAdminPass() {
     alert('Неверный пароль!');
   }
 }
-function closeAdmin() {
+function old_closeAdmin() {
   document.getElementById('adminPanel').style.display = 'none';
   document.getElementById('adminPass').value = '';
   document.getElementById('testBanMessage').style.display = 'none';
@@ -918,13 +918,30 @@ document.querySelectorAll("[data-scroll]").forEach(function(button) {
 </div>
 <script src="admin.js"></script>
 
+
+<link rel="stylesheet" href="admin.css">
+<div id="newAdminBubble" style="display:none; position:fixed; top:10px; right:10px; background:#ff9d00; color:black; padding:5px 15px; border-radius:20px; font-weight:bold; z-index:99999; box-shadow:0 0 10px #ff9d00;">👑 АДМИН</div>
+<div id="newAdminPanel" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:999999; justify-content:center; align-items:center; flex-direction:column;">
+  <div class="new-admin-box">
+    <h2>АДМИН-ПАНЕЛЬ</h2>
+    <button class="new-admin-btn btn-red" onclick="new_clearChat()">🗑️ ОЧИСТИТЬ ЧАТ</button>
+    <button class="new-admin-btn btn-orange" onclick="new_toggleBubble()">👑 ПОКАЗАТЬ ПУЗЫРЬ</button>
+    <hr style="border-color:#333; margin:15px 0;">
+    <h3 style="color:#ffd05b; margin:5px 0;">ЛОГИ:</h3>
+    <textarea id="newLogArea" readonly></textarea>
+    <button class="new-admin-btn btn-grey" onclick="new_refreshLogs()">🔄 ОБНОВИТЬ ЛОГИ</button>
+    <button class="new-admin-btn btn-grey" onclick="new_closeAdmin()">ВЫЙТИ</button>
+  </div>
+</div>
+<script src="admin.js"></script>
+
 </body>
 </html>
 <!-- ПУЗЫРЬ АДМИНА -->
-<div id="adminBubble" style="display:none; position:fixed; top:10px; right:10px; background:#ff9d00; color:black; padding:5px 15px; border-radius:20px; font-weight:bold; z-index:99999; box-shadow:0 0 10px #ff9d00;">👑 АДМИН</div>
+<div id="old_adminBubble" style="display:none; position:fixed; top:10px; right:10px; background:#ff9d00; color:black; padding:5px 15px; border-radius:20px; font-weight:bold; z-index:99999; box-shadow:0 0 10px #ff9d00;">👑 АДМИН</div>
 
 <!-- АДМИН ПАНЕЛЬ -->
-<div id="adminPanel" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:999999; justify-content:center; align-items:center; flex-direction:column;">
+<div id="old_adminPanel" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:999999; justify-content:center; align-items:center; flex-direction:column;">
   <div style="background:#100a05; border:2px solid #ff6a00; border-radius:12px; padding:20px; width:95%; max-width:500px; box-shadow:0 0 30px rgba(255,106,0,0.5);">
     <h2 style="color:#ff3939; text-align:center; margin-top:0; font-family:'Courier New', monospace;">АДМИН-ПАНЕЛЬ</h2>
     
@@ -942,7 +959,7 @@ document.querySelectorAll("[data-scroll]").forEach(function(button) {
 
 <script>
   // Открытие админки по клику на vasa.png
-  function openAdminLogin() {
+  function old_openAdminLogin() {
     var pass = prompt("Введите пароль:");
     if (pass === "1512") {
       document.getElementById('adminPanel').style.display = 'flex';
@@ -955,12 +972,12 @@ document.querySelectorAll("[data-scroll]").forEach(function(button) {
     }
   }
 
-  function closeAdmin() {
+  function old_closeAdmin() {
     document.getElementById('adminPanel').style.display = 'none';
   }
 
   // Очистка чата
-  function clearChat() {
+  function old_clearChat() {
     if (confirm("Точно очистить чат? Все сообщения удалятся из памяти сервера.")) {
       fetch('/clear_chat', { method: 'POST' }).then(() => {
         alert("Чат очищен!");
@@ -971,7 +988,7 @@ document.querySelectorAll("[data-scroll]").forEach(function(button) {
   }
 
   // Включение пузыря
-  function toggleAdminBubble() {
+  function old_toggleAdminBubble() {
     var bubble = document.getElementById('adminBubble');
     if (localStorage.getItem('isAdmin') === 'true') {
       localStorage.removeItem('isAdmin');
@@ -985,7 +1002,7 @@ document.querySelectorAll("[data-scroll]").forEach(function(button) {
   }
 
   // Загрузка логов
-  function refreshLogs() {
+  function old_refreshLogs() {
     var area = document.getElementById('logArea');
     area.value = "Загрузка...";
     fetch('/get_logs')
@@ -1006,10 +1023,10 @@ document.querySelectorAll("[data-scroll]").forEach(function(button) {
 </script>
 
 <!-- ПУЗЫРЬ АДМИНА -->
-<div id="adminBubble" style="display:none; position:fixed; top:10px; right:10px; background:#ff9d00; color:black; padding:5px 15px; border-radius:20px; font-weight:bold; z-index:99999; box-shadow:0 0 10px #ff9d00;">👑 АДМИН</div>
+<div id="old_adminBubble" style="display:none; position:fixed; top:10px; right:10px; background:#ff9d00; color:black; padding:5px 15px; border-radius:20px; font-weight:bold; z-index:99999; box-shadow:0 0 10px #ff9d00;">👑 АДМИН</div>
 
 <!-- АДМИН ПАНЕЛЬ -->
-<div id="adminPanel" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:999999; justify-content:center; align-items:center; flex-direction:column;">
+<div id="old_adminPanel" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:999999; justify-content:center; align-items:center; flex-direction:column;">
   <div style="background:#100a05; border:2px solid #ff6a00; border-radius:12px; padding:20px; width:95%; max-width:500px; box-shadow:0 0 30px rgba(255,106,0,0.5);">
     <h2 style="color:#ff3939; text-align:center; margin-top:0; font-family:'Courier New', monospace;">АДМИН-ПАНЕЛЬ</h2>
     
@@ -1026,7 +1043,7 @@ document.querySelectorAll("[data-scroll]").forEach(function(button) {
 </div>
 
 <script>
-  function openAdminLogin() {
+  function old_openAdminLogin() {
     var pass = prompt("Введите пароль:");
     if (pass === "1512") {
       document.getElementById('adminPanel').style.display = 'flex';
@@ -1039,11 +1056,11 @@ document.querySelectorAll("[data-scroll]").forEach(function(button) {
     }
   }
 
-  function closeAdmin() {
+  function old_closeAdmin() {
     document.getElementById('adminPanel').style.display = 'none';
   }
 
-  function clearChat() {
+  function old_clearChat() {
     if (confirm("Точно очистить чат? Все сообщения удалятся из памяти сервера.")) {
       fetch('/clear_chat', { method: 'POST' }).then(() => {
         alert("Чат очищен!");
@@ -1052,7 +1069,7 @@ document.querySelectorAll("[data-scroll]").forEach(function(button) {
     }
   }
 
-  function toggleAdminBubble() {
+  function old_toggleAdminBubble() {
     var bubble = document.getElementById('adminBubble');
     if (localStorage.getItem('isAdmin') === 'true') {
       localStorage.removeItem('isAdmin');
@@ -1065,7 +1082,7 @@ document.querySelectorAll("[data-scroll]").forEach(function(button) {
     }
   }
 
-  function refreshLogs() {
+  function old_refreshLogs() {
     var area = document.getElementById('logArea');
     area.value = "Загрузка...";
     fetch('/get_logs')
