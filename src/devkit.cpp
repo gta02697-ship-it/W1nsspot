@@ -34,6 +34,12 @@ void setup() {
   addLog("\n[WiFi] ✅ IP: " + WiFi.localIP().toString());
 
   // Главная
+  server.on("/game.html", HTTP_GET, []() {
+    File file = LittleFS.open("/game.html", "r");
+    server.streamFile(file, "text/html");
+    file.close();
+  });
+
   server.on("/", HTTP_GET, []() {
     addLog("[HTTP] Запрос: /");
     File file = LittleFS.open("/index.html", "r");
