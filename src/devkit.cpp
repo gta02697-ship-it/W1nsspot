@@ -34,11 +34,7 @@ void setup() {
   addLog("\n[WiFi] ✅ IP: " + WiFi.localIP().toString());
 
   // Главная
-  server.on("/game.html", HTTP_GET, []() {
-    File file = LittleFS.open("/game.html", "r");
-    server.streamFile(file, "text/html");
-    file.close();
-  });
+  
 
   server.on("/", HTTP_GET, []() {
     addLog("[HTTP] Запрос: /");
@@ -120,6 +116,33 @@ void setup() {
 
   server.on("/fatal", HTTP_POST, []() { globalFatal = true; server.send(200, "text/plain", "OK"); });
   server.on("/get_fatal_status", HTTP_GET, []() { server.send(200, "application/json", "{\"fatal\": " + String(globalFatal ? "true" : "false") + "}"); });
+
+  
+  // УНИВЕРСАЛЬНЫЙ ОБРАБОТЧИК ВСЕХ ФАЙЛОВ
+  server.onNotFound([]() {
+    String path = server.uri();
+    if (path == "/") path = "/index.html";
+    
+    Serial.println("[HTTP] Запрос: " + path);
+    
+      Serial.println("[HTTP] ❌ 404: " + path);
+      server.send(404, "text/plain", "404 Not Found");
+      return;
+    }
+    
+    File file = LittleFS.open(path, "r");
+    String type = "text/plain";
+    if (path.endsWith(".html")) type = "text/html";
+    else if (path.endsWith(".css")) type = "text/css";
+    else if (path.endsWith(".js")) type = "application/javascript";
+    else if (path.endsWith(".png")) type = "image/png";
+    else if (path.endsWith(".mp4")) type = "video/mp4";
+    else if (path.endsWith(".ttf")) type = "font/ttf";
+    
+    Serial.println("[HTTP] ✅ Отдаю: " + path);
+    server.streamFile(file, type);
+    file.close();
+  });
 
   server.begin();
   addLog("[HTTP] ✅ СЕРВЕР ЗАПУЩЕН!");
