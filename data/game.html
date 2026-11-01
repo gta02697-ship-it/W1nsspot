@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"><meta name="theme-color" content="#080604"><title>ЖИРОДРОП — Upgrade System</title>
+<style>
+:root{color-scheme:dark;--bg:#080604;--orange:#ff6a00;--amber:#ffd05b;--cream:#fff3df;--muted:#c9ad91;--green:#a5ed37;--red:#ff3939}*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#080604;color:var(--cream);font-family:Inter,Arial,sans-serif}body{background:radial-gradient(ellipse at 50% 43%,#a43d1720,transparent 45%),radial-gradient(ellipse at 4% 80%,#ff790016,transparent 32%),linear-gradient(90deg,#ff79000b 1px,transparent 1px),linear-gradient(#ff79000b 1px,transparent 1px),#080604;background-size:auto,auto,46px 46px,46px 46px,auto}button{font:inherit}.app{height:100dvh;width:min(100%,650px);margin:auto;padding:env(safe-area-inset-top,7px) 22px env(safe-area-inset-bottom,7px);display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden;isolation:isolate;text-align:center}.heading h1{margin:0;font-size:clamp(30px,8.5vw,47px);font-weight:1000;letter-spacing:1.8px;background:linear-gradient(#fff2b8,#ffd05b 48%,#ff8a16);color:transparent;background-clip:text;-webkit-background-clip:text;filter:drop-shadow(0 0 15px #ff850033)}.heading p{margin:4px 0 0;color:var(--muted);font-size:clamp(13px,3.8vw,18px)}.stage{margin:30px 0;position:relative;display:flex;justify-content:center;align-items:center;flex-direction:column}.bubble{width:min(60vw, 200px);aspect-ratio:1;border-radius:50%;background:radial-gradient(circle at 30% 30%, #fff, var(--orange) 70%);box-shadow:0 0 30px var(--orange), inset -10px -10px 20px rgba(0,0,0,0.5);transition:all 0.5s ease;position:relative}.bubble::after{content:"";position:absolute;top:15%;left:20%;width:20%;height:10%;border-radius:50%;background:rgba(255,255,255,0.6);transform:rotate(-45deg)}.level-text{font-size:24px;font-weight:900;margin-top:20px;color:var(--amber);text-shadow:0 0 10px var(--orange)}.btn{width:100%;max-width:300px;height:60px;background:linear-gradient(#ff8500,#ff5100);border:1px solid #ffbd7a;border-radius:12px;color:white;font-size:20px;font-weight:900;cursor:pointer;box-shadow:0 5px 0 #8a2a00;margin-top:10px}.btn:active{transform:translateY(4px);box-shadow:0 1px 0 #8a2a00}.btn:disabled{opacity:0.5;cursor:not-allowed}.btn-wear{background:linear-gradient(#a5ed37,#5ea000);border-color:#d4ff88;box-shadow:0 5px 0 #2e5000;color:#000;display:none;margin-top:20px}.status{text-align:center;min-height:24px;color:var(--amber);font-weight:bold;margin-top:20px}.max-skin{width:100px;height:100px;object-fit:contain;filter:drop-shadow(0 0 20px var(--orange));display:none;margin-top:20px;border-radius:50%;animation:pulse 1.5s infinite}@keyframes pulse{0%{transform:scale(1)}50%{transform:scale(1.05)}100%{transform:scale(1)}}
+</style></head>
+<body><div class="app">
+<header class="heading"><h1>ЖИРОДРОП</h1><p>Прокачай свой пузырь до максимума</p></header>
+<div class="stage">
+  <div class="bubble" id="bubble"></div>
+  <div class="level-text" id="levelText">УРОВЕНЬ 1 / 5</div>
+  <img src="vasa.png" class="max-skin" id="maxSkin" alt="MAX">
+</div>
+<div class="status" id="status">Готов к апгрейду</div>
+<button class="btn" id="go">ОБКАЛЫВАНИТЬ</button>
+<button class="btn btn-wear" id="wear">НАДЕТЬ ПУЗЫРЬ</button>
+</div>
+<script>
+let currentLevel = parseInt(localStorage.getItem('zhiro_level')) || 1;
+let maxLevel = 5;
+let busy = false;
+const $ = id => document.getElementById(id);
+function updateUI() {
+  $('levelText').textContent = 'УРОВЕНЬ ' + currentLevel + ' / ' + maxLevel;
+  const colors = ['#ff6a00', '#ffd05b', '#ff3939', '#ff9d00', '#ffea00'];
+  $('bubble').style.setProperty('--orange', colors[currentLevel - 1] || '#ff6a00');
+  if (currentLevel >= maxLevel) {
+    $('bubble').style.display = 'none';
+    $('maxSkin').style.display = 'block';
+    $('go').disabled = true;
+    $('go').textContent = 'МАКСИМАЛЬНЫЙ УРОВЕНЬ';
+    $('wear').style.display = 'block';
+    $('status').textContent = 'Ты получил уникальный пузырь!';
+    $('status').style.color = '#a5ed37';
+  } else {
+    $('bubble').style.display = 'block';
+    $('maxSkin').style.display = 'none';
+    $('go').disabled = false;
+    $('go').textContent = 'ОБКАЛЫВАНИТЬ';
+    $('wear').style.display = 'none';
+  }
+}
+$('go').onclick = function() {
+  if (busy || currentLevel >= maxLevel) return;
+  busy = true;
+  $('go').disabled = true;
+  $('status').textContent = 'ПРОВЕРКА...';
+  $('status').style.color = '#ffd05b';
+  $('bubble').style.transform = 'scale(0.9) rotate(5deg)';
+  setTimeout(() => { $('bubble').style.transform = 'scale(1) rotate(0deg)'; }, 200);
+  setTimeout(() => {
+    const win = Math.random() < 0.5;
+    if (win) {
+      currentLevel++;
+      localStorage.setItem('zhiro_level', currentLevel);
+      $('status').textContent = 'УСПЕХ! УРОВЕНЬ ПОВЫШЕН!';
+      $('status').style.color = '#a5ed37';
+      for(let i=0; i<10; i++) {
+        let spark = document.createElement('div');
+        spark.style.cssText = 'position:absolute;width:5px;height:5px;background:#ffd05b;border-radius:50%;top:50%;left:50%;z-index:99;';
+        document.body.appendChild(spark);
+        let x = (Math.random() - 0.5) * 200;
+        let y = (Math.random() - 0.5) * 200;
+        spark.animate([{transform:'translate(0,0)', opacity:1},{transform:'translate('+x+'px,'+y+'px)', opacity:0}], {duration:800});
+        setTimeout(() => spark.remove(), 800);
+      }
+    } else {
+      currentLevel = Math.max(1, currentLevel - 1);
+      localStorage.setItem('zhiro_level', currentLevel);
+      $('status').textContent = 'НЕУДАЧА! УРОВЕНЬ СНИЖЕН.';
+      $('status').style.color = '#ff3939';
+    }
+    busy = false;
+    updateUI();
+  }, 1000);
+};
+$('wear').onclick = function() {
+  localStorage.setItem('zhiro_has_max_skin', 'true');
+  $('status').textContent = 'Пузырь надет! Теперь он будет в чате.';
+  $('wear').textContent = 'НАДЕТО ✓';
+  $('wear').disabled = true;
+  $('wear').style.opacity = '0.7';
+  fetch('/set_skin', { method: 'POST', body: 'hasSkin=true' }).catch(e => {});
+};
+updateUI();
+</script></body></html>
