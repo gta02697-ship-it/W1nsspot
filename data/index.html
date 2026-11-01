@@ -893,6 +893,41 @@ function openAdminLogin() {
 }
 
 </script>
+
+<script>
+  function clearChat() {
+    if (confirm('Точно очистить чат?')) {
+      fetch('/clear_chat', { method: 'POST' }).then(() => {
+        alert('Чат очищен!');
+        document.querySelectorAll('.messages').forEach(el => el.innerHTML = '');
+      });
+    }
+  }
+
+  function toggleAdminBubble() {
+    var bubble = document.getElementById('adminBubble');
+    if (bubble.style.display === 'block') {
+      bubble.style.display = 'none';
+    } else {
+      bubble.style.display = 'block';
+    }
+  }
+
+  function refreshLogs() {
+    var area = document.getElementById('logArea');
+    area.value = 'Загрузка...';
+    fetch('/get_logs').then(r => r.json()).then(d => {
+      area.value = d.join('
+');
+      area.scrollTop = area.scrollHeight;
+    }).catch(e => area.value = 'Ошибка: ' + e);
+  }
+
+  function closeAdmin() {
+    document.getElementById('adminPanel').style.display = 'none';
+  }
+</script>
+
 </body>
 </html>
 <!-- ПУЗЫРЬ АДМИНА -->
@@ -918,5 +953,40 @@ function openAdminLogin() {
 <script>
   
 </script>
+
+<script>
+  function clearChat() {
+    if (confirm('Точно очистить чат?')) {
+      fetch('/clear_chat', { method: 'POST' }).then(() => {
+        alert('Чат очищен!');
+        document.querySelectorAll('.messages').forEach(el => el.innerHTML = '');
+      });
+    }
+  }
+
+  function toggleAdminBubble() {
+    var bubble = document.getElementById('adminBubble');
+    if (bubble.style.display === 'block') {
+      bubble.style.display = 'none';
+    } else {
+      bubble.style.display = 'block';
+    }
+  }
+
+  function refreshLogs() {
+    var area = document.getElementById('logArea');
+    area.value = 'Загрузка...';
+    fetch('/get_logs').then(r => r.json()).then(d => {
+      area.value = d.join('
+');
+      area.scrollTop = area.scrollHeight;
+    }).catch(e => area.value = 'Ошибка: ' + e);
+  }
+
+  function closeAdmin() {
+    document.getElementById('adminPanel').style.display = 'none';
+  }
+</script>
+
 </body>
 </html>
