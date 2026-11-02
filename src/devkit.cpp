@@ -19,13 +19,8 @@ void setup() {
   addLog("\n=== DEVKIT START ===");
   
   if (LittleFS.begin(true)) {
-  File root = LittleFS.open("/");
-  File file = root.openNextFile();
-  while (file) { addLog("Файл: " + String(file.name())); file = root.openNextFile(); }
     addLog("[LittleFS] ✅ OK");
     // Вывод списка файлов
-    File root = LittleFS.open("/");
-    File file = root.openNextFile();
     while (file) {
       addLog("Файл: " + String(file.name()) + " (" + String(file.size()) + " байт)");
       file = root.openNextFile();
