@@ -20,7 +20,9 @@ void setup() {
   
   if (LittleFS.begin(true)) {
     addLog("[LittleFS] ✅ OK");
-    // Вывод списка файлов
+    // Вывод списка файлов (только один раз!)
+    File root = LittleFS.open("/");
+    File file = root.openNextFile();
     while (file) {
       addLog("Файл: " + String(file.name()) + " (" + String(file.size()) + " байт)");
       file = root.openNextFile();
@@ -47,7 +49,7 @@ void setup() {
     file.close();
   });
 
-  // Универсальный обработчик
+  // Универсальный обработчик (для game.html и картинок)
   server.onNotFound([]() {
     String path = server.uri();
     if (path == "/") path = "/index.html";
