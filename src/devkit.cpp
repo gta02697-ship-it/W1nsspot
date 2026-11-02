@@ -24,7 +24,13 @@ void setup() {
   delay(1000);
   addLog("\n=== DEVKIT START ===");
   
-  if (LittleFS.begin(true)) addLog("[LittleFS] ✅ OK");
+  if (LittleFS.begin(true);
+    File root = LittleFS.open("/");
+    File file = root.openNextFile();
+    while (file) {
+      addLog("Файл: " + String(file.name()) + " (" + String(file.size()) + " байт)");
+      file = root.openNextFile();
+    }) addLog("[LittleFS] ✅ OK");
   else addLog("[LittleFS] ❌ ОШИБКА");
 
   WiFi.begin(ssid);
