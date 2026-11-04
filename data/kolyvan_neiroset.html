@@ -9,20 +9,30 @@
     :root { --bg:#050302; --panel:#0a0705; --orange:#ff6a00; --amber:#ffd05b; --text:#fff5e5; --border:#552a0a; }
     * { box-sizing: border-box; }
     html, body { margin:0; padding:0; width:100%; height:100%; overflow:hidden; }
-    body { background:var(--bg); color:var(--text); font-family:"W1nssMinecraft", monospace; display:flex; flex-direction:column; }
-    .header { display:flex; align-items:center; gap:12px; padding:15px 20px; border-bottom:1px solid var(--border); background:rgba(10,7,5,0.9); }
+    body { background:var(--bg); color:var(--text); font-family:"W1nssMinecraft", monospace; display:flex; flex-direction:column; min-height:0; position:relative; }
+    .bg-terminal { position:fixed; inset:0; width:100%; height:100%; z-index:0; pointer-events:none; overflow:hidden; opacity:0.30; display:flex; flex-direction:column; padding:10px; }
+    .terminal-line { font-family:'Courier New', monospace; font-size:11px; line-height:1.5; color:var(--orange); text-shadow:0 0 4px rgba(255,106,0,0.65); white-space:pre-wrap; word-break:break-all; margin:0; flex-shrink:0; }
+    .header { display:flex; align-items:center; gap:12px; padding:15px 20px; border-bottom:1px solid var(--border); background:rgba(10,7,5,0.9); position:relative; z-index:5; flex-shrink:0; }
+    .header svg { width:26px; height:26px; color:var(--orange); }
     .header h1 { margin:0; font-size:15px; color:var(--amber); }
-    .chat-container { flex:1; overflow-y:auto; padding:20px; display:flex; flex-direction:column; gap:20px; }
-    .msg { max-width:85%; padding:15px; border-radius:8px; font-size:11px; line-height:1.7; background:rgba(10,7,5,0.9); white-space: pre-wrap; }
+    .status-image { display:block; width:58px; height:58px; margin-left:auto; object-fit:contain; animation:statusBreath 3.6s infinite alternate; }
+    @keyframes statusBreath { from { opacity:0.4; transform:scale(0.94); } to { opacity:1; transform:scale(1.04); } }
+    .chat-container { flex:1; overflow-y:auto; padding:20px; display:flex; flex-direction:column; gap:15px; position:relative; z-index:4; }
+    .msg { max-width:85%; padding:15px; border-radius:8px; font-size:11px; line-height:1.7; background:rgba(10,7,5,0.9); white-space:pre-wrap; }
     .msg.user { align-self:flex-end; background:rgba(255,106,0,0.15); border:1px solid var(--orange); }
     .msg.ai { align-self:flex-start; border-left:3px solid var(--orange); }
-    .input-area { padding:15px 20px; background:rgba(10,7,5,0.98); border-top:1px solid var(--border); display:flex; gap:12px; }
+    .input-area { padding:15px 20px; background:rgba(10,7,5,0.98); border-top:1px solid var(--border); display:flex; gap:12px; position:relative; z-index:10; flex-shrink:0; }
     .input-area input { flex:1; padding:14px; background:#000; border:1px solid var(--border); color:var(--amber); border-radius:6px; outline:none; }
     .input-area button { padding:0 16px; background:var(--orange); border:none; border-radius:6px; font-weight:bold; cursor:pointer; }
 </style>
 </head>
 <body>
-<div class="header"><h1>КОЛЫВАН // НЕЙРОСЕТЬ</h1></div>
+<div class="bg-terminal" id="bgTerminal"></div>
+<div class="header">
+    <svg viewBox="0 0 24 24" fill="none"><rect x="6" y="6" width="12" height="12" rx="1" stroke="currentColor" stroke-width="1.8"/><path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4" stroke="currentColor" stroke-width="1.8"/></svg>
+    <div><h1>КОЛЫВАН // НЕЙРОСЕТЬ</h1></div>
+    <img class="status-image" src="http://192.168.4.2/status.png" alt="Статус">
+</div>
 <div class="chat-container" id="chatContainer"></div>
 <div class="input-area">
     <input type="text" id="userInput" placeholder="ВВЕДИ ЗАПРОС..." autocomplete="off">
@@ -33,6 +43,21 @@ const chatContainer = document.getElementById('chatContainer');
 const userInput = document.getElementById('userInput');
 const sendBtn = document.getElementById('sendBtn');
 const SERVER_IP = "192.168.4.3:8087";
+
+// Фоновый терминал (для красоты)
+const bgTerminal = document.getElementById('bgTerminal');
+const commands = ['C:\\> systeminfo','C:\\> ipconfig /all','C:\\> tasklist','C:\\> ping 192.168.4.2','[KOLIVAN] Initializing neural interface...','[KOLIVAN] Local inference: READY'];
+let cmdIndex = 0;
+function typeBgLine() {
+    const lineEl = document.createElement('div');
+    lineEl.className = 'terminal-line';
+    lineEl.textContent = commands[cmdIndex % commands.length];
+    bgTerminal.appendChild(lineEl);
+    if (bgTerminal.childElementCount > 20) bgTerminal.removeChild(bgTerminal.firstElementChild);
+    cmdIndex++;
+    setTimeout(typeBgLine, 1500);
+}
+typeBgLine();
 
 function addMessage(text, type) {
     const div = document.createElement('div');
@@ -51,12 +76,13 @@ async function sendMessage() {
     userInput.disabled = true;
     sendBtn.disabled = true;
 
-    const aiMsgDiv = addMessage('', 'ai');
+    const aiMsgDiv = addMessage('Думаю...', 'ai');
     
     try {
         const response = await fetch(`http://${SERVER_IP}/ai?text=${encodeURIComponent(text)}`);
         if (!response.ok) throw new Error("Сервер не отвечает");
         
+        aiMsgDiv.textContent = ''; // Очищаем "Думаю..."
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
         
@@ -65,7 +91,7 @@ async function sendMessage() {
             if (done) break;
             const chunk = decoder.decode(value, { stream: true });
             aiMsgDiv.textContent += chunk;
-            chatContainer.scrollTop = chatContainer.scrollHeight;
+            chatContainer.scrollTop = chatContainer.scrollHeight; // Автоскролл
         }
     } catch (error) {
         aiMsgDiv.textContent = "[ОШИБКА]: " + error.message;
@@ -75,7 +101,6 @@ async function sendMessage() {
         userInput.focus();
     }
 }
-
 userInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
 </script>
 </body>
