@@ -579,7 +579,7 @@ function openGdz() {
   var author = "Виленкин"; // Пока заглушка
   var cls = "6";
   var task = "345";
-  var url = "http://192.168.4.3:8080/search?author=" + encodeURIComponent(author) + "&class=" + cls + "&task=" + task;
+  var url = "http://192.168.4.3:8087/search?author=" + encodeURIComponent(author) + "&class=" + cls + "&task=" + task;
   console.log("[GDZ] Отправка запроса:", url);
   
   fetch(url)
@@ -607,7 +607,7 @@ document.getElementById("aiForm").addEventListener("submit", function(event) {
   if (!question) return;
   
   document.getElementById("aiReply").textContent = "> ДУМАЮ...";
-  var url = "http://192.168.4.3:8080/ai?text=" + encodeURIComponent(question);
+  var url = "http://192.168.4.3:8087/ai?text=" + encodeURIComponent(question);
   
   fetch(url)
     .then(res => res.json())
@@ -1485,7 +1485,7 @@ function openGdz() {
   var author = "Виленкин"; // Пока заглушка
   var cls = "6";
   var task = "345";
-  var url = "http://192.168.4.3:8080/search?author=" + encodeURIComponent(author) + "&class=" + cls + "&task=" + task;
+  var url = "http://192.168.4.3:8087/search?author=" + encodeURIComponent(author) + "&class=" + cls + "&task=" + task;
   console.log("[GDZ] Отправка запроса:", url);
   
   fetch(url)
@@ -1513,7 +1513,7 @@ document.getElementById("aiForm").addEventListener("submit", function(event) {
   if (!question) return;
   
   document.getElementById("aiReply").textContent = "> ДУМАЮ...";
-  var url = "http://192.168.4.3:8080/ai?text=" + encodeURIComponent(question);
+  var url = "http://192.168.4.3:8087/ai?text=" + encodeURIComponent(question);
   
   fetch(url)
     .then(res => res.json())
