@@ -255,7 +255,7 @@ async function sendMessage() {
         
         thinkingDiv.remove();
         const aiMsgDiv = addMessage('', 'ai');
-        const answer = await response.text();
+        const data = await response.json(); if (data.status === "ok") { addMessage(data.answer, "ai"); } else { addMessage("[ОШИБКА]: " + data.message, "ai"); }
         aiMsgDiv.textContent = answer;
     } catch (error) {
         thinkingDiv.remove();
