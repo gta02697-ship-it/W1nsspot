@@ -35,11 +35,16 @@ void setup() {
     String name = server.arg("name");
     String text = server.arg("text");
     if (name.length() > 0 && text.length() > 0) {
-      if (messageCount < 50) {
-        String id = String(millis());
-        messages[messageCount] = {id, name, text};
-        messageCount++;
+      // Если массив заполнен, сдвигаем старые сообщения
+      if (messageCount >= 50) {
+        for (int i = 0; i < 49; i++) {
+          messages[i] = messages[i + 1];
+        }
+        messageCount = 49;
       }
+      String id = String(millis());
+      messages[messageCount] = {id, name, text};
+      messageCount++;
     }
     server.send(200, "text/plain", "OK");
   });
