@@ -36,6 +36,22 @@ void setup() {
   addLog("[WiFi] ✅ IP: " + WiFi.localIP().toString());
 
   // Главная страница
+  
+  // ЧАТ
+  String chatMessages = "";
+  server.on("/send", []() {
+    String name = server.arg("name");
+    String text = server.arg("text");
+    if (name.length() > 0 && text.length() > 0) {
+      chatMessages += name + ": " + text + "
+";
+    }
+    server.send(200, "text/plain", "OK");
+  });
+
+  server.on("/get_messages", []() {
+    server.send(200, "text/plain", chatMessages);
+  });
   server.on("/", HTTP_GET, []() {
     Serial.println("[HTTP] Запрос: /");
     File file = LittleFS.open("/index.html", "r");
