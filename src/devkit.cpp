@@ -5,7 +5,15 @@
 const char* ssid = "༺✧₭Øⳑ⋮ⱱⱥ₦✧༻";
 WebServer server(80);
 
-String chatMessages = ""; // Сообщения в формате "id|name|text\n"
+// Массив для сообщений
+struct Message {
+  String id;
+  String name;
+  String text;
+};
+
+Message messages[50]; // Максимум 50 сообщений
+int messageCount = 0;
 
 void setup() {
   Serial.begin(115200);
@@ -27,10 +35,10 @@ void setup() {
     String name = server.arg("name");
     String text = server.arg("text");
     if (name.length() > 0 && text.length() > 0) {
-      String id = String(millis());
-      chatMessages += id + "|" + name + "|" + text + "\n";
-      if (chatMessages.length() > 5000) { // Ограничение памяти
-        chatMessages = chatMessages.substring(chatMessages.indexOf("\n") + 1);
+      if (messageCount < 50) {
+        String id = String(millis());
+        messages[messageCount] = {id, name, text};
+        messageCount++;
       }
     }
     server.send(200, "text/plain", "OK");
@@ -39,24 +47,9 @@ void setup() {
   // ЧАТ: Получение
   server.on("/get_messages", []() {
     String json = "[";
-    int start = 0;
-    bool first = true;
-    while (start < chatMessages.length()) {
-      int end = chatMessages.indexOf("\n", start);
-      if (end == -1) end = chatMessages.length();
-      String line = chatMessages.substring(start, end);
-      
-      int p1 = line.indexOf("|");
-      int p2 = line.indexOf("|", p1 + 1);
-      if (p1 > 0 && p2 > p1) {
-        String id = line.substring(0, p1);
-        String name = line.substring(p1 + 1, p2);
-        String text = line.substring(p2 + 1);
-        if (!first) json += ",";
-        json += "{\"id\":" + id + ",\"name\":\"" + name + "\",\"text\":\"" + text + "\"}";
-        first = false;
-      }
-      start = end + 1;
+    for (int i = 0; i < messageCount; i++) {
+      if (i > 0) json += ",";
+      json += "{\"id\":" + messages[i].id + ",\"name\":\"" + messages[i].name + "\",\"text\":\"" + messages[i].text + "\"}";
     }
     json += "]";
     server.send(200, "application/json", json);
