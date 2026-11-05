@@ -642,7 +642,7 @@ var lastRenderedIds = new Set();
 var mySentMessages = []; 
 
 function fetchMessages() {
-  fetch('/get_messages')
+  fetch('http://192.168.4.3:8088/get_messages')
     .then(function(res) { return res.text(); })
     .then(function(text) {
       try {
@@ -805,7 +805,7 @@ function sendMessage(inputId) {
     container.scrollTop = container.scrollHeight;
   });
 
-  fetch('/send', { 
+  fetch('http://192.168.4.3:8088/send', { 
     method: 'POST', 
     headers: {'Content-Type': 'application/x-www-form-urlencoded'}, 
     body: 'name=' + encodeURIComponent(myChatName) + '&text=' + encodeURIComponent(text) 
@@ -1548,7 +1548,7 @@ var lastRenderedIds = new Set();
 var mySentMessages = []; 
 
 function fetchMessages() {
-  fetch('/get_messages')
+  fetch('http://192.168.4.3:8088/get_messages')
     .then(function(res) { return res.text(); })
     .then(function(text) {
       try {
@@ -1711,7 +1711,7 @@ function sendMessage(inputId) {
     container.scrollTop = container.scrollHeight;
   });
 
-  fetch('/send', { 
+  fetch('http://192.168.4.3:8088/send', { 
     method: 'POST', 
     headers: {'Content-Type': 'application/x-www-form-urlencoded'}, 
     body: 'name=' + encodeURIComponent(myChatName) + '&text=' + encodeURIComponent(text) 
