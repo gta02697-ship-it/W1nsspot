@@ -5,94 +5,87 @@
 const char* ssid = "༺✧₭Øⳑ⋮ⱱⱥ₦✧༻";
 WebServer server(80);
 
-String chatMessages = ""; // Глобальная переменная для сообщений
-
-String logBuffer[50];
-int logIndex = 0;
-void addLog(String msg) {
-  Serial.println(msg);
-  logBuffer[logIndex] = msg;
-  logIndex = (logIndex + 1) % 50;
-}
+String chatMessages = ""; // Сообщения в формате "id|name|text\n"
 
 void setup() {
   Serial.begin(115200);
   delay(1000);
-  addLog("\n=== DEVKIT START ===");
+  Serial.println("\n=== DEVKIT START ===");
 
   if (LittleFS.begin(true)) {
-    addLog("[LittleFS] ✅ OK");
-    File root = LittleFS.open("/");
-    File file = root.openNextFile();
-    while (file) {
-      addLog("Файл: " + String(file.name()) + " (" + String(file.size()) + " байт)");
-      file = root.openNextFile();
-    }
+    Serial.println("[LittleFS] OK");
   } else {
-    addLog("[LittleFS] ❌ ОШИБКА");
+    Serial.println("[LittleFS] FAIL");
   }
 
-  Serial.print("\n[WiFi] Пытаюсь подключиться к: ");
-  Serial.println(ssid);
-  
   WiFi.begin(ssid);
   while (WiFi.status() != WL_CONNECTED) { delay(500); Serial.print("."); }
-  addLog("[WiFi] ✅ IP: " + WiFi.localIP().toString());
+  Serial.println("\n[WiFi] IP: " + WiFi.localIP().toString());
 
-  // Обработчик отправки сообщения
+  // ЧАТ: Отправка
   server.on("/send", []() {
     String name = server.arg("name");
     String text = server.arg("text");
     if (name.length() > 0 && text.length() > 0) {
-      chatMessages += name + ": " + text + "\n";
+      String id = String(millis());
+      chatMessages += id + "|" + name + "|" + text + "\n";
+      if (chatMessages.length() > 5000) { // Ограничение памяти
+        chatMessages = chatMessages.substring(chatMessages.indexOf("\n") + 1);
+      }
     }
     server.send(200, "text/plain", "OK");
   });
 
-  // Обработчик получения сообщений
+  // ЧАТ: Получение
   server.on("/get_messages", []() {
-    server.send(200, "text/plain", chatMessages);
+    String json = "[";
+    int start = 0;
+    bool first = true;
+    while (start < chatMessages.length()) {
+      int end = chatMessages.indexOf("\n", start);
+      if (end == -1) end = chatMessages.length();
+      String line = chatMessages.substring(start, end);
+      
+      int p1 = line.indexOf("|");
+      int p2 = line.indexOf("|", p1 + 1);
+      if (p1 > 0 && p2 > p1) {
+        String id = line.substring(0, p1);
+        String name = line.substring(p1 + 1, p2);
+        String text = line.substring(p2 + 1);
+        if (!first) json += ",";
+        json += "{\"id\":" + id + ",\"name\":\"" + name + "\",\"text\":\"" + text + "\"}";
+        first = false;
+      }
+      start = end + 1;
+    }
+    json += "]";
+    server.send(200, "application/json", json);
   });
 
-  // Главная страница
+  // Главная
   server.on("/", HTTP_GET, []() {
-    Serial.println("[HTTP] Запрос: /");
     File file = LittleFS.open("/index.html", "r");
-    if (!file) {
-      Serial.println("[HTTP] ОШИБКА: /index.html НЕ НАЙДЕН!");
-      server.send(404, "text/plain", "index.html not found");
-      return;
-    }
-    Serial.println("[HTTP] ✅ Отдаю index.html");
+    if (!file) { server.send(404, "text/plain", "Not found"); return; }
     server.streamFile(file, "text/html");
     file.close();
   });
 
-  // Универсальный обработчик
+  // Остальное
   server.onNotFound([]() {
     String path = server.uri();
     if (path == "/") path = "/index.html";
-    Serial.println("[HTTP] Запрос: " + path);
-    if (!LittleFS.exists(path)) {
-      Serial.println("[HTTP] ❌ 404: " + path);
-      server.send(404, "text/plain", "404 Not Found");
-      return;
-    }
+    if (!LittleFS.exists(path)) { server.send(404, "text/plain", "404"); return; }
     File file = LittleFS.open(path, "r");
     String type = "text/plain";
     if (path.endsWith(".html")) type = "text/html";
-    else if (path.endsWith(".css")) type = "text/css";
-    else if (path.endsWith(".js")) type = "application/javascript";
     else if (path.endsWith(".png")) type = "image/png";
-    else if (path.endsWith(".mp4")) type = "video/mp4";
     else if (path.endsWith(".ttf")) type = "font/ttf";
-    Serial.println("[HTTP] ✅ Отдаю: " + path);
     server.streamFile(file, type);
     file.close();
   });
 
   server.begin();
-  addLog("[HTTP] ✅ СЕРВЕР ЗАПУЩЕН");
+  Serial.println("[HTTP] SERVER STARTED");
 }
 
 void loop() { server.handleClient(); }
