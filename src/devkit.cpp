@@ -2,8 +2,10 @@
 #include <WebServer.h>
 #include <LittleFS.h>
 
-const char* ssid = "༺✧₭Øⳑ⋮ⱱⱥ₦✧༻";
+const char* ssid = "KOLIVAN-PRIME";
 WebServer server(80);
+
+String chatMessages = ""; // Глобальная переменная для сообщений
 
 String logBuffer[50];
 int logIndex = 0;
@@ -13,16 +15,13 @@ void addLog(String msg) {
   logIndex = (logIndex + 1) % 50;
 }
 
-String chatMessages = "";
-
 void setup() {
   Serial.begin(115200);
   delay(1000);
   addLog("\n=== DEVKIT START ===");
-  
+
   if (LittleFS.begin(true)) {
     addLog("[LittleFS] ✅ OK");
-    // Вывод списка файлов (только один раз!)
     File root = LittleFS.open("/");
     File file = root.openNextFile();
     while (file) {
@@ -33,26 +32,29 @@ void setup() {
     addLog("[LittleFS] ❌ ОШИБКА");
   }
 
+  Serial.print("\n[WiFi] Пытаюсь подключиться к: ");
+  Serial.println(ssid);
+  
   WiFi.begin(ssid);
   while (WiFi.status() != WL_CONNECTED) { delay(500); Serial.print("."); }
   addLog("[WiFi] ✅ IP: " + WiFi.localIP().toString());
 
-  // Главная страница
-  
-  // ЧАТ
+  // Обработчик отправки сообщения
   server.on("/send", []() {
     String name = server.arg("name");
     String text = server.arg("text");
     if (name.length() > 0 && text.length() > 0) {
-      chatMessages += name + ": " + text + "
-";
+      chatMessages += name + ": " + text + "\n";
     }
     server.send(200, "text/plain", "OK");
   });
 
+  // Обработчик получения сообщений
   server.on("/get_messages", []() {
     server.send(200, "text/plain", chatMessages);
   });
+
+  // Главная страница
   server.on("/", HTTP_GET, []() {
     Serial.println("[HTTP] Запрос: /");
     File file = LittleFS.open("/index.html", "r");
@@ -66,19 +68,16 @@ void setup() {
     file.close();
   });
 
-  // Универсальный обработчик (для game.html и картинок)
+  // Универсальный обработчик
   server.onNotFound([]() {
     String path = server.uri();
     if (path == "/") path = "/index.html";
-    
     Serial.println("[HTTP] Запрос: " + path);
-    
     if (!LittleFS.exists(path)) {
       Serial.println("[HTTP] ❌ 404: " + path);
       server.send(404, "text/plain", "404 Not Found");
       return;
     }
-    
     File file = LittleFS.open(path, "r");
     String type = "text/plain";
     if (path.endsWith(".html")) type = "text/html";
@@ -87,7 +86,6 @@ void setup() {
     else if (path.endsWith(".png")) type = "image/png";
     else if (path.endsWith(".mp4")) type = "video/mp4";
     else if (path.endsWith(".ttf")) type = "font/ttf";
-    
     Serial.println("[HTTP] ✅ Отдаю: " + path);
     server.streamFile(file, type);
     file.close();
