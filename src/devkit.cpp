@@ -2,7 +2,7 @@
 #include <WebServer.h>
 #include <LittleFS.h>
 
-const char* ssid = "KOLIVAN-PRIME";
+const char* ssid = "༺✧₭Øⳑ⋮ⱱⱥ₦✧༻";
 WebServer server(80);
 
 String chatMessages = ""; // Глобальная переменная для сообщений
