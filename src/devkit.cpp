@@ -13,6 +13,8 @@ void addLog(String msg) {
   logIndex = (logIndex + 1) % 50;
 }
 
+String chatMessages = "";
+
 void setup() {
   Serial.begin(115200);
   delay(1000);
@@ -38,7 +40,6 @@ void setup() {
   // Главная страница
   
   // ЧАТ
-  String chatMessages = "";
   server.on("/send", []() {
     String name = server.arg("name");
     String text = server.arg("text");
