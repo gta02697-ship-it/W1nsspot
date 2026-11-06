@@ -253,10 +253,14 @@ async function sendMessage() {
         const response = await fetch(`http://${SERVER_IP}/ai?text=${encodeURIComponent(text)}`);
         if (!response.ok) throw new Error("Сервер не отвечает");
         
+        const data = await response.json();
         thinkingDiv.remove();
-        const aiMsgDiv = addMessage('', 'ai');
-        const data = await response.json(); if (data.status === "ok") { addMessage(data.answer, "ai"); } else { addMessage("[ОШИБКА]: " + data.message, "ai"); }
-        aiMsgDiv.textContent = answer;
+        
+        if (data.status === "ok") {
+            addMessage(data.answer, 'ai');
+        } else {
+            addMessage("[ОШИБКА]: " + (data.message || "Неизвестная ошибка"), 'ai');
+        }
     } catch (error) {
         thinkingDiv.remove();
         addMessage("[ОШИБКА СИСТЕМЫ]: " + error.message, 'ai');
