@@ -257,7 +257,7 @@ async function sendMessage() {
         thinkingDiv.remove();
         
         if (data.status === "ok") {
-            addMessage(data.answer, 'ai');
+            addMessage(data.answer, "ai"); scrollToBottom();
         } else {
             addMessage("[ОШИБКА]: " + (data.message || "Неизвестная ошибка"), 'ai');
         }
