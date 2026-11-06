@@ -1,0 +1,15 @@
+# Мусор от ADB / Android Tools
+*.deb
+*.xz
+*.zip
+platform-tools/
+platform-tool
+data/data/
+android-tools*
+
+# Бэкапы HTML
+data/*.bak_*
+
+# Системный мусор
+.DS_Store
+*.log
