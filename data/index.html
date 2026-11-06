@@ -669,7 +669,7 @@ function fetchMessages() {
 function joinChat(source) {
   var input = source === "home" ? homeUsername : fullUsername;
   if (!input) return;
-  var name = input.value.trim();
+  var name = input.value.trim().replace(/\s+/g, "_");
   if (!name) { input.focus(); return; }
   
   if (serverMessages.some(function(msg) { return msg.name.toLowerCase() === name.toLowerCase(); })) {
@@ -1575,7 +1575,7 @@ function fetchMessages() {
 function joinChat(source) {
   var input = source === "home" ? homeUsername : fullUsername;
   if (!input) return;
-  var name = input.value.trim();
+  var name = input.value.trim().replace(/\s+/g, "_");
   if (!name) { input.focus(); return; }
   
   if (serverMessages.some(function(msg) { return msg.name.toLowerCase() === name.toLowerCase(); })) {
