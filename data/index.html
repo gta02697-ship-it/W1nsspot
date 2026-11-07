@@ -255,22 +255,7 @@ h1 { font-size:clamp(22px,3.5vw,38px);margin:8px 0;line-height:1.5;overflow-wrap
     </div>
 
     <div class="tiles">
-      <button class="tile" onclick="location.href='view.html'" type="button">
-        <div class="tile-top">
-          <div class="tile-icon" aria-hidden="true">
-            <svg class="ui-icon" viewBox="0 0 24 24" fill="none">
-              <path d="M12 4a7 7 0 0 0-7 7v9l2.5-2 2.5 2 2-2 2 2 2.5-2 2.5 2v-9a7 7 0 0 0-7-7Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
-              <circle cx="9" cy="11" r="1.5" fill="currentColor"/>
-              <circle cx="15" cy="11" r="1.5" fill="currentColor"/>
-            </svg>
-          </div>
-          <div class="go" aria-hidden="true">
-            <svg class="ui-icon" viewBox="0 0 24 24" fill="none"><path d="m9 5 7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="square"/></svg>
-          </div>
-        </div>
-        <h2>ФОН <span class="dot" style="background:#ff0000;"></span></h2>
-        <div class="tile-foot" style="color:#ff0000;">КОЛЫВАНФНАФ<br>ПРОСМОТР</div>
-      </button>
+      
 
       <button class="tile chat-tile" data-open="chat" type="button">
         <div class="tile-top">
@@ -299,7 +284,26 @@ h1 { font-size:clamp(22px,3.5vw,38px);margin:8px 0;line-height:1.5;overflow-wrap
               <path d="M3 5.5c3.8-1.6 6.8-.8 9 1.2v14c-2.2-2-5.2-2.8-9-1.2Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
               <path d="M21 5.5c-3.8-1.6-6.8-.8-9 1.2v14c2.2-2 5.2-2.8 9-1.2Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
             </svg>
+          
+      <div style="grid-column: 1 / -1; display: flex; justify-content: center; margin-top: 15px; padding-bottom: 20px;">
+        <button class="tile" onclick="location.href='view.html'" type="button">
+        <div class="tile-top">
+          <div class="tile-icon" aria-hidden="true">
+            <svg class="ui-icon" viewBox="0 0 24 24" fill="none">
+              <path d="M12 4a7 7 0 0 0-7 7v9l2.5-2 2.5 2 2-2 2 2 2.5-2 2.5 2v-9a7 7 0 0 0-7-7Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+              <circle cx="9" cy="11" r="1.5" fill="currentColor"/>
+              <circle cx="15" cy="11" r="1.5" fill="currentColor"/>
+            </svg>
           </div>
+          <div class="go" aria-hidden="true">
+            <svg class="ui-icon" viewBox="0 0 24 24" fill="none"><path d="m9 5 7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="square"/></svg>
+          </div>
+        </div>
+        <h2>ФОН <span class="dot" style="background:#ff0000;"></span></h2>
+        <div class="tile-foot" style="color:#ff0000;">КОЛЫВАНФНАФ<br>ПРОСМОТР</div>
+      </button>
+      </div>
+</div>
         </div>
         <h2>ГДЗ</h2>
         <p>Ответы и решения школьных заданий.</p>
